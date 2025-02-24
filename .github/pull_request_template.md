@@ -1,4 +1,5 @@
 ### PR Type
+
 <!— Please check the one that applies to this PR using "x". —>
 
 - [ ] 버그수정(Bugfix)
@@ -11,8 +12,6 @@
 
 ### 요약(Summary)
 
-
 ### 상세 내용(Describe your changes)
-
 
 ### Issue Number or Link

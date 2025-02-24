@@ -6,7 +6,7 @@
 - ✨ **Feat:** 새로운 기능을 추가 [:sparkles]
 - 🐛 **Fix:** 버그 수정 [:bug]
 - 🎨 **Design:** CSS 등 사용자 UI 디자인 변경 [:art]
-- ♻️ **Refactor:** 코드 리팩토링 [:recycle]
+- ♻️  **Refactor:** 코드 리팩토링 [:recycle]
 - 🔧 **Settings:** Changing configuration files [:wrench]
 - 🗃️ **Comment:** 필요한 주석 추가 및 변경 [:card_file_box]
 - ➕ **Dependency/Plugin:** Add a dependency/plugin [:heavy_plus_sign]
