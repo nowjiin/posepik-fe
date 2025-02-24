@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import useCamera from './useCamera';
 import {
 	CameraContainer,
@@ -6,13 +6,11 @@ import {
 	StyledVideo,
 	HiddenCanvas,
 	ControlsContainer,
-	SideControls,
-	SwitchCameraButton,
-	FlipButton,
-	Button,
+	ControlButton,
 	CaptureButton,
 	CapturedImageContainer,
 	CapturedImageActions,
+	Button,
 	ErrorMessage,
 	HeaderBar,
 	HeaderTitle,
@@ -26,7 +24,6 @@ const CameraComponent = () => {
 		isCameraOn,
 		cameraError,
 		capturedImage,
-		facingMode,
 		isFlipped,
 		startCamera,
 		stopCamera,
@@ -41,7 +38,7 @@ const CameraComponent = () => {
 	const [showPreview, setShowPreview] = useState(false);
 
 	// 컴포넌트 마운트 시 자동으로 카메라 시작
-	React.useEffect(() => {
+	useEffect(() => {
 		startCamera();
 
 		return () => {
@@ -105,20 +102,15 @@ const CameraComponent = () => {
 			</VideoContainer>
 
 			{!showPreview && (
-				<>
-					<ControlsContainer>
-						<CaptureButton onClick={handleCapture} disabled={!isCameraOn} />
-					</ControlsContainer>
-
-					<SideControls>
-						<SwitchCameraButton onClick={switchCamera} disabled={!isCameraOn}>
-							⟲
-						</SwitchCameraButton>
-						<FlipButton onClick={toggleFlip} disabled={!isCameraOn}>
-							⇄
-						</FlipButton>
-					</SideControls>
-				</>
+				<ControlsContainer>
+					<ControlButton onClick={toggleFlip} disabled={!isCameraOn}>
+						⇄
+					</ControlButton>
+					<CaptureButton onClick={handleCapture} disabled={!isCameraOn} />
+					<ControlButton onClick={switchCamera} disabled={!isCameraOn}>
+						⟲
+					</ControlButton>
+				</ControlsContainer>
 			)}
 
 			{showPreview && capturedImage && (
@@ -126,7 +118,7 @@ const CameraComponent = () => {
 					<img src={capturedImage} alt="촬영된 사진" />
 					<CapturedImageActions>
 						<Button onClick={handleRetake}>다시 촬영</Button>
-						<Button onClick={handleSend} disabled={isSending} primary>
+						<Button onClick={handleSend} disabled={isSending} $primary>
 							{isSending ? '전송 중...' : '사용하기'}
 						</Button>
 					</CapturedImageActions>

@@ -12,13 +12,13 @@ const useCamera = () => {
 	// 카메라 시작
 	const startCamera = async () => {
 		try {
-			// 4:3 비율로 설정 (세로가 긴 형태이므로 3:4로 설정)
+			// 3:4 비율로 설정 (세로가 긴 형태)
 			const stream = await navigator.mediaDevices.getUserMedia({
 				video: {
-					aspectRatio: 3 / 4, // 세로가 더 길게 3:4 비율 설정
-					width: { ideal: 960 }, // 해상도 설정
+					aspectRatio: 3 / 4,
+					width: { ideal: 960 },
 					height: { ideal: 1280 },
-					facingMode: facingMode, // 현재 설정된 카메라 방향 사용
+					facingMode: facingMode,
 				},
 			});
 
@@ -43,11 +43,44 @@ const useCamera = () => {
 		}
 	};
 
+	// 카메라 전환 (전면/후면)
+	const switchCamera = async () => {
+		// 현재 실행 중인 카메라 스트림을 중지
+		if (videoRef.current && videoRef.current.srcObject) {
+			const tracks = videoRef.current.srcObject.getTracks();
+			tracks.forEach(track => track.stop());
+			videoRef.current.srcObject = null;
+		}
+
+		// facingMode 상태 즉시 변경
+		const newFacingMode = facingMode === 'user' ? 'environment' : 'user';
+		setFacingMode(newFacingMode);
+
+		try {
+			// 새로운 facingMode로 카메라 직접 시작
+			const stream = await navigator.mediaDevices.getUserMedia({
+				video: {
+					aspectRatio: 3 / 4,
+					width: { ideal: 960 },
+					height: { ideal: 1280 },
+					facingMode: newFacingMode,
+				},
+			});
+
+			if (videoRef.current) {
+				videoRef.current.srcObject = stream;
+				setIsCameraOn(true);
+				setCameraError(null);
+			}
+		} catch (error) {
+			console.error('카메라 전환 에러:', error);
+			setCameraError('카메라 전환에 실패했습니다.');
+		}
+	};
+
 	// 좌우 반전 토글
 	const toggleFlip = () => {
 		setIsFlipped(prev => !prev);
-		// 비디오 요소의 스타일은 직접 변경하지 않고,
-		// StyledVideo 컴포넌트에서 isFlipped 상태를 이용해 스타일 적용
 	};
 
 	// 사진 촬영 (반전 상태 고려)
@@ -152,41 +185,6 @@ const useCamera = () => {
 			stopCamera();
 		};
 	}, []);
-
-	// 카메라 전환 (전면/후면)
-	const switchCamera = async () => {
-		// 현재 실행 중인 카메라 스트림을 중지
-		if (videoRef.current && videoRef.current.srcObject) {
-			const tracks = videoRef.current.srcObject.getTracks();
-			tracks.forEach(track => track.stop());
-			videoRef.current.srcObject = null;
-		}
-
-		// facingMode 상태 즉시 변경
-		const newFacingMode = facingMode === 'user' ? 'environment' : 'user';
-		setFacingMode(newFacingMode);
-
-		try {
-			// 새로운 facingMode로 카메라 직접 시작
-			const stream = await navigator.mediaDevices.getUserMedia({
-				video: {
-					aspectRatio: 3 / 4,
-					width: { ideal: 960 },
-					height: { ideal: 1280 },
-					facingMode: newFacingMode,
-				},
-			});
-
-			if (videoRef.current) {
-				videoRef.current.srcObject = stream;
-				setIsCameraOn(true);
-				setCameraError(null);
-			}
-		} catch (error) {
-			console.error('카메라 전환 에러:', error);
-			setCameraError('카메라 전환에 실패했습니다.');
-		}
-	};
 
 	return {
 		videoRef,
