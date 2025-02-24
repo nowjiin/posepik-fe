@@ -13,14 +13,14 @@ const useCamera = () => {
 	const startCamera = async () => {
 		try {
 			// 3:4 비율로 설정 (세로가 긴 형태)
-			const stream = await navigator.mediaDevices.getUserMedia({
+			const constraints = {
 				video: {
-					aspectRatio: 3 / 4,
-					width: { ideal: 960 },
-					height: { ideal: 1280 },
 					facingMode: facingMode,
 				},
-			});
+			};
+
+			// 특정 모바일 기기에서 비율 제약이 문제가 될 수 있으므로 더 단순하게 설정
+			const stream = await navigator.mediaDevices.getUserMedia(constraints);
 
 			if (videoRef.current) {
 				videoRef.current.srcObject = stream;
@@ -60,9 +60,6 @@ const useCamera = () => {
 			// 새로운 facingMode로 카메라 직접 시작
 			const stream = await navigator.mediaDevices.getUserMedia({
 				video: {
-					aspectRatio: 3 / 4,
-					width: { ideal: 960 },
-					height: { ideal: 1280 },
 					facingMode: newFacingMode,
 				},
 			});
@@ -90,22 +87,20 @@ const useCamera = () => {
 			const canvas = canvasRef.current;
 			const context = canvas.getContext('2d');
 
-			// 세로가 긴 3:4 비율 유지하면서 캔버스 설정
-			const width = video.videoWidth;
-			const height = video.videoHeight;
+			// 비디오 크기 가져오기
+			const videoWidth = video.videoWidth;
+			const videoHeight = video.videoHeight;
 
-			// 세로가 긴 3:4 비율 적용
-			canvas.width = height * (3 / 4);
-			canvas.height = height;
-
-			// 중앙 정렬하여 그리기 위한 위치 계산
-			const sourceX = (width - height * (3 / 4)) / 2;
-			const sourceY = 0;
-			const sourceWidth = height * (3 / 4);
-			const sourceHeight = height;
+			// 세로 모드에 맞게 3:4 비율로 캔버스 설정
+			canvas.width = Math.min(videoWidth, videoHeight * 0.75); // 3:4 비율에서 가로는 세로*0.75
+			canvas.height = Math.min(videoHeight, videoWidth * 1.33); // 3:4 비율에서 세로는 가로*1.33
 
 			// 캔버스 초기화
 			context.clearRect(0, 0, canvas.width, canvas.height);
+
+			// 비디오의 중앙에서 캡처할 영역 계산
+			const sourceX = (videoWidth - canvas.width) / 2;
+			const sourceY = (videoHeight - canvas.height) / 2;
 
 			// 좌우 반전 적용
 			if (isFlipped) {
@@ -115,27 +110,16 @@ const useCamera = () => {
 					video,
 					sourceX,
 					sourceY,
-					sourceWidth,
-					sourceHeight, // 원본 영역
+					canvas.width,
+					canvas.height,
 					-canvas.width,
 					0,
 					canvas.width,
-					canvas.height, // 타겟 영역 (좌우 반전을 위해 x 좌표를 음수로)
+					canvas.height,
 				);
 				context.restore();
 			} else {
-				// 비디오 프레임을 캔버스에 그리기 (3:4 비율 유지)
-				context.drawImage(
-					video,
-					sourceX,
-					sourceY,
-					sourceWidth,
-					sourceHeight, // 원본 영역
-					0,
-					0,
-					canvas.width,
-					canvas.height, // 타겟 영역
-				);
+				context.drawImage(video, sourceX, sourceY, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
 			}
 
 			// 캔버스의 이미지 데이터를 base64 형식으로 추출
