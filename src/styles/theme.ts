@@ -1,11 +1,15 @@
 const COLOR = {
 	WHITE: '#FFFFFF',
 	BLACK: '#000000',
-	PrimaryBlue: '#3C56BD',
+	PrimaryBlue1: '#3C56BD',
+	PrimaryBlue2: '#3722F6',
 	SubBlue1: '#6175C4',
 	SubBlue2: '#B6C3FA',
 	SubBlue3: '#DEE5FF',
 	SubBlue4: '#CDD7FF',
+	SubPurple1: '#714CFE',
+	SubPurple2: '#916EFF',
+	SubPurple3: '#B39AFD',
 	Gray10: '#F8F8F8',
 	Gray20: '#D1D1D1',
 	Gray25: '#D6D6D6',
@@ -14,7 +18,7 @@ const COLOR = {
 	Gray50: '#4D4D4D',
 	Gray60: '#5B5B5B',
 	Gray70: '#3F3F3F',
-	Red: '#FF6363',
+	Red: '#FF3F3F',
 } as const;
 
 const FONT = {
