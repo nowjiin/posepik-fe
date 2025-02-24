@@ -7,17 +7,17 @@ export const CameraContainer = styled.div`
 	height: 100dvh; /* 모바일 브라우저의 동적 뷰포트 높이 대응 */
 	position: relative;
 	overflow: hidden;
+	background-color: #000; /* 검은색 배경 추가 */
 `;
 
 export const VideoContainer = styled.div`
 	position: relative;
 	width: 100%;
-	height: 100%;
-	overflow: hidden;
+	flex: 1; /* 남은 공간을 모두 차지하도록 설정 */
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	background-color: #000;
+	overflow: hidden;
 `;
 
 export const StyledVideo = styled.video.attrs(() => ({
@@ -41,7 +41,7 @@ export const HiddenCanvas = styled.canvas`
 
 export const ControlsContainer = styled.div`
 	position: absolute;
-	bottom: 30px;
+	bottom: 20px;
 	left: 0;
 	right: 0;
 	display: flex;
@@ -50,6 +50,7 @@ export const ControlsContainer = styled.div`
 	gap: 25px;
 	padding: 0 20px;
 	z-index: 10;
+	margin-bottom: env(safe-area-inset-bottom, 0); /* iOS 안전 영역 고려 */
 `;
 
 export const ControlButton = styled.button`
