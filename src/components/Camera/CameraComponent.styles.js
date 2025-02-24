@@ -4,7 +4,7 @@ export const CameraContainer = styled.div`
 	display: flex;
 	flex-direction: column;
 	width: 100%;
-	height: 100dvh; /* vh 대신 dvh 사용하여 모바일 브라우저의 동적 뷰포트 높이 대응 */
+	height: 100dvh; /* 모바일 브라우저의 동적 뷰포트 높이 대응 */
 	position: relative;
 	overflow: hidden;
 `;
@@ -20,7 +20,7 @@ export const VideoContainer = styled.div`
 	background-color: #000;
 `;
 
-export const StyledVideo = styled.video.attrs(props => ({
+export const StyledVideo = styled.video.attrs(() => ({
 	// 여기서 HTML 요소에 전달할 속성만 정의
 	autoPlay: true,
 	playsInline: true,
@@ -47,24 +47,14 @@ export const ControlsContainer = styled.div`
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	gap: 15px;
+	gap: 25px;
 	padding: 0 20px;
 	z-index: 10;
 `;
 
-export const SideControls = styled.div`
-	position: absolute;
-	top: 80px;
-	right: 20px;
-	display: flex;
-	flex-direction: column;
-	gap: 15px;
-	z-index: 10;
-`;
-
 export const ControlButton = styled.button`
-	width: 50px;
-	height: 50px;
+	width: 48px;
+	height: 48px;
 	border-radius: 50%;
 	background-color: rgba(0, 0, 0, 0.5);
 	color: white;
@@ -72,7 +62,7 @@ export const ControlButton = styled.button`
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	font-size: 24px;
+	font-size: 22px;
 	cursor: pointer;
 	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 
@@ -83,38 +73,6 @@ export const ControlButton = styled.button`
 	&:disabled {
 		opacity: 0.5;
 		cursor: not-allowed;
-	}
-`;
-
-export const SwitchCameraButton = styled(ControlButton)``;
-
-export const FlipButton = styled(ControlButton)`
-	font-size: 20px;
-`;
-
-export const Button = styled.button`
-	padding: 12px 20px;
-	border: none;
-	border-radius: 50px;
-	background-color: ${props => (props.primary ? '#4285F4' : 'rgba(0, 0, 0, 0.5)')};
-	color: white;
-	font-size: 16px;
-	cursor: pointer;
-	transition: background-color 0.3s;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	gap: 8px;
-	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-
-	&:hover {
-		background-color: ${props => (props.primary ? '#3367D6' : 'rgba(0, 0, 0, 0.7)')};
-	}
-
-	&:disabled {
-		background-color: #bdbdbd;
-		cursor: not-allowed;
-		opacity: 0.7;
 	}
 `;
 
@@ -169,7 +127,7 @@ export const CapturedImageContainer = styled.div`
 
 	img {
 		width: auto; /* 가로는 비율에 맞게 */
-		height: 85dvh; /* vh 대신 dvh 사용 */
+		height: 85dvh; /* dvh 사용 */
 		object-fit: contain;
 		max-width: 100%; /* 최대 너비 제한 */
 	}
@@ -179,6 +137,32 @@ export const CapturedImageActions = styled.div`
 	display: flex;
 	gap: 15px;
 	margin-top: 20px;
+`;
+
+export const Button = styled.button`
+	padding: 12px 20px;
+	border: none;
+	border-radius: 50px;
+	background-color: ${props => (props.$primary ? '#4285F4' : 'rgba(0, 0, 0, 0.5)')};
+	color: white;
+	font-size: 16px;
+	cursor: pointer;
+	transition: background-color 0.3s;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+
+	&:hover {
+		background-color: ${props => (props.$primary ? '#3367D6' : 'rgba(0, 0, 0, 0.7)')};
+	}
+
+	&:disabled {
+		background-color: #bdbdbd;
+		cursor: not-allowed;
+		opacity: 0.7;
+	}
 `;
 
 export const ErrorMessage = styled.div`
