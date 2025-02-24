@@ -1,6 +1,6 @@
-import * as S from './Example.style';
+import * as S from './Main.style';
 
-function Example() {
-	return <S.Example>예시 페이지</S.Example>;
+function Main() {
+	return <S.Main>예시 페이지</S.Main>;
 }
-export default Example;
+export default Main;
