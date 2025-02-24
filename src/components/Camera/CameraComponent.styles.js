@@ -4,7 +4,7 @@ export const CameraContainer = styled.div`
 	display: flex;
 	flex-direction: column;
 	width: 100%;
-	height: 100vh;
+	height: 100dvh; /* vh 대신 dvh 사용하여 모바일 브라우저의 동적 뷰포트 높이 대응 */
 	position: relative;
 	overflow: hidden;
 `;
@@ -169,7 +169,7 @@ export const CapturedImageContainer = styled.div`
 
 	img {
 		width: auto; /* 가로는 비율에 맞게 */
-		height: 85vh; /* 세로가 긴 형태로 표시 */
+		height: 85dvh; /* vh 대신 dvh 사용 */
 		object-fit: contain;
 		max-width: 100%; /* 최대 너비 제한 */
 	}

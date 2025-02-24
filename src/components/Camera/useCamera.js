@@ -154,13 +154,38 @@ const useCamera = () => {
 	}, []);
 
 	// 카메라 전환 (전면/후면)
-	const switchCamera = () => {
-		stopCamera();
-		setFacingMode(prev => (prev === 'user' ? 'environment' : 'user'));
-		// 카메라 방향 전환 후 재시작
-		setTimeout(() => {
-			startCamera();
-		}, 300);
+	const switchCamera = async () => {
+		// 현재 실행 중인 카메라 스트림을 중지
+		if (videoRef.current && videoRef.current.srcObject) {
+			const tracks = videoRef.current.srcObject.getTracks();
+			tracks.forEach(track => track.stop());
+			videoRef.current.srcObject = null;
+		}
+
+		// facingMode 상태 즉시 변경
+		const newFacingMode = facingMode === 'user' ? 'environment' : 'user';
+		setFacingMode(newFacingMode);
+
+		try {
+			// 새로운 facingMode로 카메라 직접 시작
+			const stream = await navigator.mediaDevices.getUserMedia({
+				video: {
+					aspectRatio: 3 / 4,
+					width: { ideal: 960 },
+					height: { ideal: 1280 },
+					facingMode: newFacingMode,
+				},
+			});
+
+			if (videoRef.current) {
+				videoRef.current.srcObject = stream;
+				setIsCameraOn(true);
+				setCameraError(null);
+			}
+		} catch (error) {
+			console.error('카메라 전환 에러:', error);
+			setCameraError('카메라 전환에 실패했습니다.');
+		}
 	};
 
 	return {
