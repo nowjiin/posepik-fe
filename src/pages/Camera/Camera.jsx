@@ -1,3 +1,4 @@
+import CameraComponent from '@components/Camera/CameraComponent';
 export default function Camera() {
-	return <>123fddffgdgdfdgfgdf</>;
+	return <CameraComponent />;
 }
