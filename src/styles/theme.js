@@ -12,6 +12,7 @@ const COLOR = {
 	SubPurple3: '#B39AFD',
 	Gray10: '#F8F8F8',
 	Gray20: '#D1D1D1',
+	Gray25: '#DDDDDD',
 	Gray30: '#A8A8A8',
 	Gray40: '#656565',
 	Gray50: '#4D4D4D',

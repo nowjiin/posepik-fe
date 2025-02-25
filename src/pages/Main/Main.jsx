@@ -7,6 +7,7 @@ import CameraButton from '@components/Common/CameraButton/CameraButton';
 import InputText from '@components/Common/InputText/InputText';
 import PlaceBox from '@pages/MapDetail/components/PlaceBox/PlaceBox';
 import GuideBox from '@pages/MapDetail/components/GuideBox/GuideBox';
+import PicGuideBox from '@pages/PictureDetail/components/PicGuideBox/PicGuideBox';
 
 function Main() {
 	const [projectName, setProjectName] = useState('');
@@ -40,6 +41,7 @@ function Main() {
 				<GuideBox guide="샤요 궁(Palais de Chaillot) 방향에서 남쪽" />
 
 				<h1>사진 상세, 결과 상세 컴포넌트</h1>
+				<PicGuideBox guide="샤요 궁(Palais de Chaillot) 방향에서 남쪽" />
 			</S.Main>
 		</>
 	);
