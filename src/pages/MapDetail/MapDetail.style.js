@@ -29,7 +29,7 @@ export const BottomContainer = styled.div`
 `;
 
 export const PhotoContainer = styled.div`
-	width: 100%;
+	width: calc(100% - 22px);
 	display: grid;
 	grid-template-columns: 50% 50%;
 	row-gap: 16px;
@@ -37,7 +37,7 @@ export const PhotoContainer = styled.div`
 `;
 
 export const PhotoBox = styled.div`
-	width: calc(100% - 22px);
+	width: 100%;
 	display: flex;
 	flex-direction: column;
 	gap: 5px;
