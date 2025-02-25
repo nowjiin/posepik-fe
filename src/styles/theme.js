@@ -12,11 +12,13 @@ const COLOR = {
 	SubPurple3: '#B39AFD',
 	Gray10: '#F8F8F8',
 	Gray20: '#D1D1D1',
+	Gray25: '#DDDDDD',
 	Gray30: '#A8A8A8',
 	Gray40: '#656565',
 	Gray50: '#4D4D4D',
 	Gray60: '#5B5B5B',
 	Gray70: '#3F3F3F',
+	Gray500: '#363636',
 	Red: '#FF3F3F',
 };
 
@@ -28,6 +30,11 @@ const FONT = {
   `,
 	SEMIBOLD: (size, lineHeight) => `
     font-weight: 600;
+    font-size: ${size}px;
+    line-height: ${lineHeight}%;
+  `,
+	MEDIUM: (size, lineHeight) => `
+    font-weight: 500;
     font-size: ${size}px;
     line-height: ${lineHeight}%;
   `,

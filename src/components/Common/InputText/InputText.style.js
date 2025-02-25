@@ -5,10 +5,11 @@ export const Input = styled.div`
 	display: flex;
 	flex-direction: column;
 	gap: 4px;
+	width: 100%;
 `;
 
 export const InputText = styled.input`
-	width: 356px;
+	width: 100%;
 	padding: 14.65px 12.35px;
 	box-sizing: border-box;
 	border-radius: 7px;
@@ -28,6 +29,6 @@ export const InputText = styled.input`
 
 export const Warn = styled.div`
 	color: ${theme.COLOR.Red};
-	${({ theme }) => theme.FONT.REGULAR(8, 124)}
+	${({ theme }) => theme.FONT.MEDIUM(12, 124)}
 	padding-left: 10px;
 `;
