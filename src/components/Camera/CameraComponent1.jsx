@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import useCamera from './useCamera';
+import useCamera from './useCamera1';
 import {
 	CameraContainer,
 	VideoContainer,
