@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import * as S from './PictureDetail.style';
 import BackHeader from '@components/Common/Header/BackHeader';
 import CameraButton from '@components/Common/CameraButton/CameraButton';
@@ -8,8 +9,19 @@ import Refresh from '@assets/svg/icon-refresh.svg';
 import first from '@assets/svg/icon-1st-medal.svg';
 import second from '@assets/svg/icon-2nd-medal.svg';
 import third from '@assets/svg/icon-3rd-medal.svg';
+import RankingModal from './components/RankingModal/RankingModal';
 
 export default function PictureDetail() {
+	const [isModalOpen, setIsModalOpen] = useState(false);
+
+	const openModal = () => {
+		setIsModalOpen(true);
+	};
+
+	const closeModal = () => {
+		setIsModalOpen(false);
+	};
+
 	return (
 		<S.Space>
 			<BackHeader />
@@ -34,32 +46,32 @@ export default function PictureDetail() {
 							<S.RefreshImg src={Refresh} alt="새로고침" />
 						</S.TitleContainer>
 						<S.RankingContainer>
-							<S.RankingBarContainer>
+							<S.RankingBarContainer onClick={openModal}>
 								배고프다
 								<S.RankingBar1>23.1%</S.RankingBar1>
 							</S.RankingBarContainer>
-							<S.RankingBarContainer>
+							<S.RankingBarContainer onClick={openModal}>
 								배고프다
 								<S.RankingBar2>
 									<S.MedalImg src={second} alt="2등" />
 									69.3%
 								</S.RankingBar2>
 							</S.RankingBarContainer>
-							<S.RankingBarContainer>
+							<S.RankingBarContainer onClick={openModal}>
 								배고프다
 								<S.RankingBar3>
 									<S.MedalImg src={first} alt="1등" />
 									87.6%
 								</S.RankingBar3>
 							</S.RankingBarContainer>
-							<S.RankingBarContainer>
+							<S.RankingBarContainer onClick={openModal}>
 								배고프다
 								<S.RankingBar4>
 									<S.MedalImg src={third} alt="3등" />
 									47.1%
 								</S.RankingBar4>
 							</S.RankingBarContainer>
-							<S.RankingBarContainer>
+							<S.RankingBarContainer onClick={openModal}>
 								배고프다
 								<S.RankingBar5>12.4%</S.RankingBar5>
 							</S.RankingBarContainer>
@@ -70,6 +82,7 @@ export default function PictureDetail() {
 					<CameraButton />
 				</S.ButtonContainer>
 			</S.Container>
+			{isModalOpen && <RankingModal onClose={closeModal} />}
 		</S.Space>
 	);
 }
