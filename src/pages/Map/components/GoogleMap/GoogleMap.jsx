@@ -31,7 +31,7 @@ function GoogleMap() {
 		mapRef.current = new window.google.maps.Map(node, {
 			center: { lat: 48.858844, lng: 2.294351 },
 			zoom: 16,
-			mapId: import.meta.env.VITE_APP_GOOGLE_VECTOR_MAP_KEY,
+			mapId: import.meta.env.VITE_APP_GOOGLE_MAP_KEY,
 			minZoom: 12,
 			maxZoom: 18,
 			gestureHandling: 'greedy',
