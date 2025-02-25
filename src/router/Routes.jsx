@@ -18,7 +18,7 @@ const AppRoutes = () => {
 				<Route path="/main" element={<Main />} />
 				<Route path="/map" element={<Map />} />
 				<Route path="/map-detail" element={<MapDetail />} />
-				<Route path="/picture-detail" element={<PictureDetail />} />
+				<Route path="/picture-detail/:id" element={<PictureDetail />} />
 				<Route path="/camera" element={<Camera />} />
 				<Route path="/camera-result" element={<CameraResult />} />
 				<Route path="/*" element={<Error />} />

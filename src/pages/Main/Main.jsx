@@ -7,6 +7,8 @@ import CameraButton from '@components/Common/CameraButton/CameraButton';
 import InputText from '@components/Common/InputText/InputText';
 import PlaceBox from '@pages/MapDetail/components/PlaceBox/PlaceBox';
 import GuideBox from '@pages/MapDetail/components/GuideBox/GuideBox';
+import MapPin from '@pages/Map/components/MapPin/MapPin';
+import PhotoBox from '@pages/Map/components/PhotoBox/PhotoBox';
 import DescriptionBox from '@pages/PictureDetail/components/DescriptionBox/DescriptionBox';
 import InstagramBox from '@pages/PictureDetail/components/InstagramBox/InstagramBox';
 import PicGuideBox from '@pages/PictureDetail/components/PicGuideBox/PicGuideBox';
@@ -42,6 +44,16 @@ function Main() {
 				<h1>지도, 지도 상세 컴포넌트</h1>
 				<PlaceBox country="프랑스" area="파리" />
 				<GuideBox guide="샤요 궁(Palais de Chaillot) 방향에서 남쪽" />
+				<MapPin
+					id={1}
+					imageUrl="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQqV-EpDA9QlYzrKkI-xVr6FFolVlQaqZQQbw&s"
+				/>
+				<PhotoBox
+					id={1}
+					imageUrl="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQqV-EpDA9QlYzrKkI-xVr6FFolVlQaqZQQbw&s"
+					location="사진 위치"
+					instagram="rize_official"
+				/>
 
 				<h1>사진 상세, 결과 상세 컴포넌트</h1>
 				<DescriptionBox
