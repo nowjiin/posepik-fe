@@ -44,14 +44,39 @@ export default function CameraResult() {
 		window.open(instagramUrl, '_blank'); // 새 창에서 공유
 	};
 
+	const photoList = [
+		{
+			id: 0,
+			imageUrl: 'https://github.com/user-attachments/assets/306149ff-dc7d-487c-a3ee-595ab00ea5bf',
+		},
+		{
+			id: 1,
+			imageUrl: 'https://github.com/user-attachments/assets/425146d7-bef8-4a7c-b693-4048c429008c',
+		},
+		{
+			id: 2,
+			imageUrl: 'https://github.com/user-attachments/assets/fe461828-78d8-4f53-8710-d61e94e2dc09',
+		},
+		{
+			id: 3,
+			imageUrl: 'https://github.com/user-attachments/assets/e7802c41-61ed-4a28-ae9a-806384612b77',
+		},
+		{
+			id: 4,
+			imageUrl: 'https://github.com/user-attachments/assets/5f4e383e-45c8-4df2-9b21-483df58a5bcf',
+		},
+	];
+
+	const selectedPhoto = photoList.find(photo => photo.id === Number(id));
+
 	return (
 		<S.Space>
 			<BackHeader />
 			<S.Container>
 				<S.BodyContainer>
 					<S.ImageContainer>
-						<S.InstaImg src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQqV-EpDA9QlYzrKkI-xVr6FFolVlQaqZQQbw&s" />
-						<S.InstaImg src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQqV-EpDA9QlYzrKkI-xVr6FFolVlQaqZQQbw&s" />
+						<S.InstaImg src={selectedPhoto?.imageUrl || ''} />
+						<S.InstaImg src={selectedPhoto?.imageUrl || ''} />
 					</S.ImageContainer>
 					<S.TextContainer>
 						<S.TitleContainer>포토 스코어</S.TitleContainer>
@@ -89,7 +114,7 @@ export default function CameraResult() {
 					</S.ButtonSpaceContainer>
 				</S.BodyContainer>
 			</S.Container>
-			{isModalOpen && <ResultModal id={id} onClose={closeModal} />}
+			{isModalOpen && <ResultModal id={id} name={rankingName} onClose={closeModal} />}
 		</S.Space>
 	);
 }

@@ -59,10 +59,10 @@ export default function PictureDetail() {
 	];
 
 	const selectedPhoto = photoList.find(photo => photo.id === Number(id));
-	const routeNum = Number(id) + 1;
 
 	const handleCameraButtonClick = () => {
-		navigate(`/camera${routeNum}`);
+		const targetPath = id === '0' ? '/camera' : `/camera${id}`;
+		navigate(targetPath);
 	};
 
 	return (

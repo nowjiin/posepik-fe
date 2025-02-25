@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import * as S from './ResultModal.style';
 
-export default function ResultModal({ id, onClose }) {
+export default function ResultModal({ id, name, onClose }) {
 	const navigate = useNavigate();
 
 	const handleNavLinkClick = path => {
@@ -15,7 +15,7 @@ export default function ResultModal({ id, onClose }) {
 			<S.ModalSpace>
 				<S.ModalWrap>
 					<S.TextContainer>
-						[사용자 이름]님은 1등이에요!
+						{name}님은 1등이에요!
 						<S.Content>랭킹 페이지를 확인해보세요!</S.Content>
 					</S.TextContainer>
 					<S.ButtonContainer onClick={() => handleNavLinkClick(`/picture-detail/${id}`)}>
@@ -29,5 +29,6 @@ export default function ResultModal({ id, onClose }) {
 
 ResultModal.propTypes = {
 	id: PropTypes.number.isRequired,
+	name: PropTypes.string.isRequired,
 	onClose: PropTypes.func.isRequired,
 };
