@@ -7,6 +7,8 @@ import CameraButton from '@components/Common/CameraButton/CameraButton';
 import InputText from '@components/Common/InputText/InputText';
 import PlaceBox from '@pages/MapDetail/components/PlaceBox/PlaceBox';
 import GuideBox from '@pages/MapDetail/components/GuideBox/GuideBox';
+import DescriptionBox from '@pages/PictureDetail/components/DescriptionBox/DescriptionBox';
+import InstagramBox from '@pages/PictureDetail/components/InstagramBox/InstagramBox';
 import PicGuideBox from '@pages/PictureDetail/components/PicGuideBox/PicGuideBox';
 
 function Main() {
@@ -41,6 +43,12 @@ function Main() {
 				<GuideBox guide="샤요 궁(Palais de Chaillot) 방향에서 남쪽" />
 
 				<h1>사진 상세, 결과 상세 컴포넌트</h1>
+				<DescriptionBox
+					description="이 사진을 보면 에펠탑이 정면으로 보이고, 넓은 광장이 있으며, 바닥이 돌로 
+포장되어 있습니다. 이런 특징을 고려했을 때, 샤요 궁(Palais de Chaillot) 
+방향에서 남쪽을 바라보며 촬영한 사진일 가능성이 높습니다. 최대3줄입니다ㅏㅏㅏ"
+				/>
+				<InstagramBox instagramID="jennierubyjane" />
 				<PicGuideBox guide="샤요 궁(Palais de Chaillot) 방향에서 남쪽" />
 			</S.Main>
 		</>
