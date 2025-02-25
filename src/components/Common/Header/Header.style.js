@@ -8,6 +8,8 @@ export const HeaderContainer = styled.div`
 	height: 54px;
 	box-sizing: border-box;
 	padding: 10px 25px;
+	position: relative;
+	z-index: 100;
 
 	@media (hover: hover) and (pointer: fine) {
 		width: 440px;
