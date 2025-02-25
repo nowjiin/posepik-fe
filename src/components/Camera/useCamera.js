@@ -8,7 +8,7 @@ const useCamera = () => {
 	const [capturedImage, setCapturedImage] = useState(null);
 	const [facingMode, setFacingMode] = useState('user'); // 'user' (전면) 또는 'environment' (후면)
 	const [isFlipped, setIsFlipped] = useState(false); // 좌우 반전 상태
-	const [silhouetteImage, setSilhouetteImage] = useState('/src/assets/png/green-silhouette-icon-png.png'); // 실루엣 이미지 경로
+	const [silhouetteImage, setSilhouetteImage] = useState('/images/green-silhouette-icon-png.png'); // 실루엣 이미지 경로
 
 	// 카메라 시작
 	const startCamera = async () => {
