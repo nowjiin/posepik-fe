@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 
 // 카메라 기능 관리
-// 카메라 시작/종료, 촬영, 실루엣 비교
+// 카메라 시작/종료, 촬영, 사람 감지
 const useCamera = () => {
 	const videoRef = useRef(null);
 	const canvasRef = useRef(null);
@@ -246,43 +246,53 @@ const useCamera = () => {
 		detectFrame();
 	};
 
-	// 키포인트가 설정된 프레임 내에 있는지 확인
+	// 키포인트가 상체 이미지 가이드에 맞는지 확인
 	const checkLandmarksInFrame = landmarks => {
 		if (!landmarks || landmarks.length === 0) return 0;
 
-		// 비디오 프레임 크기 (비디오 중앙 60% 영역으로 설정)
-		const frameRect = {
-			left: 0.2, // 왼쪽 20% 지점
-			top: 0.2, // 위쪽 20% 지점
-			right: 0.8, // 오른쪽 80% 지점 (왼쪽에서 20% + 너비 60%)
-			bottom: 0.8, // 아래쪽 80% 지점 (위쪽에서 20% + 높이 60%)
+		// 상체 이미지 가이드 영역 (10%-90% 영역으로 설정했으므로 넓게 잡음)
+		const imageRect = {
+			left: 0.1, // 왼쪽 10% 지점
+			top: 0.1, // 위쪽 10% 지점
+			right: 0.9, // 오른쪽 90% 지점
+			bottom: 0.9, // 아래쪽 90% 지점
 		};
 
-		// 필수 키포인트 (주요 상체 랜드마크)
-		const essentialLandmarks = [
+		// 상체에 해당하는 키포인트만 선택
+		const upperBodyLandmarks = [
 			0, // 코
+			1,
+			2,
+			3,
+			4, // 눈, 귀
+			5,
+			6,
+			7,
+			8,
+			9,
+			10, // 입, 얼굴
 			11,
 			12, // 어깨
 			13,
 			14, // 팔꿈치
 			15,
 			16, // 손목
-			23,
-			24, // 엉덩이
 		];
 
 		// 프레임 내에 있는 키포인트 카운트
 		let pointsInFrame = 0;
 		let totalPoints = 0;
 
-		for (const index of essentialLandmarks) {
+		for (const index of upperBodyLandmarks) {
 			if (landmarks[index] && landmarks[index].visibility > 0.5) {
 				totalPoints++;
 
 				const { x, y } = landmarks[index];
 
-				// 키포인트가 지정된 프레임 내에 있는지 확인
-				if (x >= frameRect.left && x <= frameRect.right && y >= frameRect.top && y <= frameRect.bottom) {
+				// 키포인트가 이미지 가이드 영역 내에 있는지 확인
+				// 상체 이미지는 중앙에 있으므로 별도 위치 조정이 필요할 수 있음
+				// 기본 영역은 넓게 설정하고 특정 키포인트는 더 자세한 위치 검증 가능
+				if (checkPointInUpperbodyArea(index, x, y)) {
 					pointsInFrame++;
 				}
 			}
@@ -290,6 +300,45 @@ const useCamera = () => {
 
 		// 프레임 내 키포인트 비율 계산 (백분율)
 		return totalPoints > 0 ? Math.round((pointsInFrame / totalPoints) * 100) : 0;
+	};
+
+	// 특정 키포인트가 상체 이미지의 적절한 위치에 있는지 체크
+	const checkPointInUpperbodyArea = (index, x, y) => {
+		// 기본 영역 (전체 가이드 이미지 영역)
+		const baseRect = {
+			left: 0.1,
+			top: 0.1,
+			right: 0.9,
+			bottom: 0.9,
+		};
+
+		// 상체 이미지에 맞춘 세부 영역 정의
+		// 여기서 키포인트별로 더 세밀하게 위치 조정 가능
+		const areaMap = {
+			// 얼굴 영역 (상단 중앙)
+			0: { left: 0.35, top: 0.1, right: 0.65, bottom: 0.3 }, // 코
+			1: { left: 0.35, top: 0.1, right: 0.65, bottom: 0.25 }, // 왼쪽 눈
+			2: { left: 0.35, top: 0.1, right: 0.65, bottom: 0.25 }, // 오른쪽 눈
+
+			// 어깨 영역 (중단부)
+			11: { left: 0.2, top: 0.3, right: 0.45, bottom: 0.5 }, // 왼쪽 어깨
+			12: { left: 0.55, top: 0.3, right: 0.8, bottom: 0.5 }, // 오른쪽 어깨
+
+			// 팔 영역
+			13: { left: 0.05, top: 0.4, right: 0.4, bottom: 0.7 }, // 왼쪽 팔꿈치
+			14: { left: 0.6, top: 0.4, right: 0.95, bottom: 0.7 }, // 오른쪽 팔꿈치
+			15: { left: 0.05, top: 0.5, right: 0.4, bottom: 0.9 }, // 왼쪽 손목
+			16: { left: 0.6, top: 0.5, right: 0.95, bottom: 0.9 }, // 오른쪽 손목
+		};
+
+		// 해당 키포인트의 특정 영역이 정의되어 있는지 확인
+		if (index in areaMap) {
+			const area = areaMap[index];
+			return x >= area.left && x <= area.right && y >= area.top && y <= area.bottom;
+		}
+
+		// 특정 영역이 정의되지 않은 키포인트는 기본 영역으로 체크
+		return x >= baseRect.left && x <= baseRect.right && y >= baseRect.top && y <= baseRect.bottom;
 	};
 
 	// 컴포넌트 마운트 시 카메라 시작

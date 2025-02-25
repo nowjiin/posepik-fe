@@ -41,7 +41,7 @@ const CameraComponent = () => {
 	const [isSending, setIsSending] = useState(false);
 	const [sendError, setSendError] = useState(null);
 	const [showPreview, setShowPreview] = useState(false);
-	const [detectionMessage, setDetectionMessage] = useState('사람 감지 시작하기 위해 버튼을 누르세요');
+	const [detectionMessage, setDetectionMessage] = useState('사람 감지 기능을 초기화하는 중...');
 
 	// 컴포넌트 마운트 시 자동으로 카메라 시작
 	useEffect(() => {
@@ -57,9 +57,11 @@ const CameraComponent = () => {
 		if (!detectionActive) {
 			setDetectionMessage('사람 감지 기능을 초기화하는 중...');
 		} else if (personDetected) {
-			setDetectionMessage(`✅ 인식 성공: ${detectionPercentage}% 프레임 안에 있습니다`);
+			setDetectionMessage(`✅ 인식 성공: ${detectionPercentage}% 가이드에 맞게 위치했습니다`);
+		} else if (detectionPercentage > 0) {
+			setDetectionMessage(`❌ 인식 실패: ${detectionPercentage}% 가이드에 맞지 않습니다`);
 		} else {
-			setDetectionMessage(`❌ 인식 실패: ${detectionPercentage}% 프레임 안에 있습니다`);
+			setDetectionMessage('❌ 사람이 감지되지 않았습니다');
 		}
 	}, [personDetected, detectionPercentage, detectionActive]);
 
@@ -132,7 +134,34 @@ const CameraComponent = () => {
 						)}
 						{showDetectionElements && (
 							<>
-								<DetectionFrame $personDetected={personDetected} />
+								{/* upperbody.png 이미지로 가이드 표시 */}
+								<div
+									style={{
+										position: 'absolute',
+										top: '10%',
+										left: '10%',
+										width: '80%',
+										height: '80%',
+										pointerEvents: 'none',
+										zIndex: 5,
+										display: 'flex',
+										justifyContent: 'center',
+										alignItems: 'center',
+									}}>
+									<img
+										src="/images/upperbody.png"
+										alt="상체 가이드"
+										style={{
+											maxWidth: '100%',
+											maxHeight: '100%',
+											objectFit: 'contain',
+											opacity: '0.7',
+											filter: personDetected
+												? 'drop-shadow(0 0 8px rgba(76, 175, 80, 0.8))'
+												: 'drop-shadow(0 0 8px rgba(255, 82, 82, 0.8))',
+										}}
+									/>
+								</div>
 								<DetectionStatus $personDetected={personDetected}>{detectionMessage}</DetectionStatus>
 							</>
 						)}
