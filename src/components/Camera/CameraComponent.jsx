@@ -16,6 +16,10 @@ import {
 	CloseButton,
 	DetectionStatus,
 	DetectionFrame,
+	ScanAnimationContainer,
+	ScanLine,
+	ScanOverlay,
+	ScanProgress,
 } from './CameraComponent.styles';
 
 const CameraComponent = () => {
@@ -42,6 +46,8 @@ const CameraComponent = () => {
 	const [sendError, setSendError] = useState(null);
 	const [showPreview, setShowPreview] = useState(false);
 	const [detectionMessage, setDetectionMessage] = useState('사람 감지 기능을 초기화하는 중...');
+	const [uploadProgress, setUploadProgress] = useState(0);
+	const [showScanAnimation, setShowScanAnimation] = useState(false);
 
 	// 컴포넌트 마운트 시 자동으로 카메라 시작
 	useEffect(() => {
@@ -81,21 +87,45 @@ const CameraComponent = () => {
 		try {
 			setIsSending(true);
 			setSendError(null);
+			setShowScanAnimation(true);
+
+			// 진행률 애니메이션 시작
+			let progress = 0;
+			const progressInterval = setInterval(() => {
+				progress += 5; // 5%씩 증가
+				if (progress > 95) {
+					progress = 95; // 최대 95%까지만 표시 (실제 완료는 업로드 완료 후)
+					clearInterval(progressInterval);
+				}
+				setUploadProgress(progress);
+			}, 100);
 
 			// 백엔드로 전송
-			const result = await sendPhotoToBackend();
+			console.log('업로드 시작');
 
-			if (!result) {
-				throw new Error('사진 전송 실패');
+			const result = await sendPhotoToBackend();
+			console.log('업로드 응답:', result);
+
+			clearInterval(progressInterval);
+			setUploadProgress(100); // 완료 표시
+
+			// 스캔 애니메이션이 끝날 때까지 잠시 대기
+			await new Promise(resolve => setTimeout(resolve, 500));
+
+			if (!result || !result.url) {
+				throw new Error('S3 업로드 실패');
 			}
 
-			console.log('사진 전송 성공:', result);
+			console.log('S3 업로드 성공:', result);
 
 			// 전송 성공 후 미리보기 닫기 (옵션)
-			// setShowPreview(false);
+			setShowScanAnimation(false);
+			setShowPreview(false);
 		} catch (error) {
 			console.error('전송 에러:', error);
+			console.error(error.message);
 			setSendError(error.message || '사진을 전송하는데 실패했습니다.');
+			setShowScanAnimation(false);
 		} finally {
 			setIsSending(false);
 		}

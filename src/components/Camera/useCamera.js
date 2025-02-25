@@ -355,10 +355,36 @@ const useCamera = () => {
 
 	// 사진 촬영
 	const capturePhoto = () => {
+		console.log('캡처 시작', {
+			videoRef: !!videoRef.current,
+			canvasRef: !!canvasRef.current,
+			isCameraOn,
+		});
+
+		if (!videoRef.current) {
+			console.error('비디오 요소가 없습니다');
+			return null;
+		}
+
+		if (!canvasRef.current) {
+			console.error('캔버스 요소가 없습니다');
+			return null;
+		}
+
+		if (!isCameraOn) {
+			console.error('카메라가 켜져있지 않습니다');
+			return null;
+		}
+
 		if (videoRef.current && canvasRef.current && isCameraOn) {
 			const video = videoRef.current;
 			const canvas = canvasRef.current;
 			const context = canvas.getContext('2d');
+
+			if (!context) {
+				console.error('캔버스 컨텍스트를 가져올 수 없습니다');
+				return null;
+			}
 
 			// 비디오 크기
 			const videoWidth = video.videoWidth;
@@ -367,6 +393,7 @@ const useCamera = () => {
 			// 3:4 비율로 캔버스 설정
 			canvas.width = Math.min(videoWidth, videoHeight * 0.75);
 			canvas.height = Math.min(videoHeight, videoWidth * 1.33);
+			console.log('비디오 크기', { videoWidth, videoHeight });
 
 			// 캔버스 초기화
 			context.clearRect(0, 0, canvas.width, canvas.height);
@@ -374,6 +401,7 @@ const useCamera = () => {
 			// 중앙에서 캡처
 			const sourceX = (videoWidth - canvas.width) / 2;
 			const sourceY = (videoHeight - canvas.height) / 2;
+			console.log('소스 위치', { sourceX, sourceY });
 
 			// 좌우 반전 적용
 			if (isFlipped) {
@@ -395,8 +423,12 @@ const useCamera = () => {
 				context.drawImage(video, sourceX, sourceY, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
 			}
 
-			// 이미지 데이터 추출
 			const imageData = canvas.toDataURL('image/jpeg', 0.9);
+			console.log(
+				'이미지 데이터 생성 완료',
+				imageData ? `길이: ${imageData.length}, 시작: ${imageData.substring(0, 30)}...` : '실패',
+			);
+
 			setCapturedImage(imageData);
 
 			return imageData;
@@ -406,32 +438,80 @@ const useCamera = () => {
 
 	// 사진 전송
 	const sendPhotoToBackend = async () => {
-		const imageData = capturePhoto();
+		const imageData = capturedImage;
 
-		if (!imageData) return null;
-
+		console.log(imageData);
+		if (!imageData) {
+			console.error('이미지 캡처 실패: 이미지 데이터가 없습니다');
+			return null;
+		}
 		try {
 			// 이미지 데이터를 Blob으로 변환
-			const response = await fetch(imageData);
-			const blob = await response.blob();
+			if (!imageData) {
+				console.error('이미지 캡처 실패: 이미지 데이터가 없습니다');
+				return null;
+			}
+			// Base64 이미지 데이터를 Blob으로 직접 변환
+			// Data URL 형식: data:image/jpeg;base64,/9j/4AAQ...
+			const base64Data = imageData.split(',')[1];
+			const byteCharacters = atob(base64Data);
+			const byteArrays = [];
+			for (let i = 0; i < byteCharacters.length; i += 512) {
+				const slice = byteCharacters.slice(i, i + 512);
+				const byteNumbers = new Array(slice.length);
+
+				for (let j = 0; j < slice.length; j++) {
+					byteNumbers[j] = slice.charCodeAt(j);
+				}
+
+				byteArrays.push(new Uint8Array(byteNumbers));
+			}
+			// Blob 생성
+			const blob = new Blob(byteArrays, { type: 'image/jpeg' });
+			console.log('이미지 변환 완료:', blob.type, blob.size, '바이트');
+
+			// 현재 시간을 파일명에 포함시켜 유니크한 파일명 생성
+			const timestamp = new Date().getTime();
+			const filename = `capture_${timestamp}.jpg`;
+
+			const formData = new FormData();
 
 			// FormData 생성 및 이미지 추가
-			const formData = new FormData();
-			formData.append('image', blob, 'capture.jpg');
+			formData.append('file', blob, filename);
+			console.log('S3 업로드 요청 준비 완료, 파일명:', filename);
+
+			console.log('S3 업로드 요청 시작:', formData);
 
 			// 백엔드로 전송
-			const serverResponse = await fetch('http://your-backend-url/api/upload', {
+			const serverResponse = await fetch('https://api.posepik.store/api/s3/upload', {
 				method: 'POST',
 				body: formData,
 			});
+			console.log(serverResponse);
+			console.log('서버 응답 상태:', serverResponse.status, serverResponse.statusText);
 
 			if (!serverResponse.ok) {
-				throw new Error('서버 응답 에러');
+				let errorMessage;
+				try {
+					// 오류 응답 본문이 JSON인 경우
+					const errorData = await serverResponse.json();
+					errorMessage = errorData.message || errorData.error || JSON.stringify(errorData);
+				} catch {
+					// JSON이 아닌 경우 텍스트로 읽기 시도
+					try {
+						errorMessage = await serverResponse.text();
+					} catch {
+						errorMessage = serverResponse.statusText;
+					}
+				}
+				throw new Error(`서버 응답 에러(${serverResponse.status}): ${errorMessage}`);
 			}
-
-			return await serverResponse.json();
+			// 업로드된 파일 URL 반환
+			const result = await serverResponse.text();
+			console.log('S3 업로드 성공:', result);
+			return result;
 		} catch (error) {
-			console.error('사진 전송 에러:', error);
+			console.error('S3 업로드 에러:', error);
 			return null;
 		}
 	};
