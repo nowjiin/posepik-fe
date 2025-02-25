@@ -511,7 +511,7 @@ const useCamera = () => {
 			// 업로드된 파일 URL 반환
 			const result = await serverResponse.text();
 			console.log('S3 업로드 성공:', result);
-			navigate('/camera-result/:3');
+			navigate('/camera-result/3', { state: { imageUrl: result } });
 			return result;
 		} catch (error) {
 			console.error('S3 업로드 에러:', error);
