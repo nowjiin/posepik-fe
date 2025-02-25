@@ -17,6 +17,7 @@ const COLOR = {
 	Gray50: '#4D4D4D',
 	Gray60: '#5B5B5B',
 	Gray70: '#3F3F3F',
+	Gray500: '#363636',
 	Red: '#FF3F3F',
 };
 
@@ -28,6 +29,11 @@ const FONT = {
   `,
 	SEMIBOLD: (size, lineHeight) => `
     font-weight: 600;
+    font-size: ${size}px;
+    line-height: ${lineHeight}%;
+  `,
+	MEDIUM: (size, lineHeight) => `
+    font-weight: 500;
     font-size: ${size}px;
     line-height: ${lineHeight}%;
   `,

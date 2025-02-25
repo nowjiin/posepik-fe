@@ -28,6 +28,6 @@ export const InputText = styled.input`
 
 export const Warn = styled.div`
 	color: ${theme.COLOR.Red};
-	${({ theme }) => theme.FONT.REGULAR(12, 124)}
+	${({ theme }) => theme.FONT.MEDIUM(12, 124)}
 	padding-left: 10px;
 `;

@@ -11,6 +11,19 @@
 		url(/fonts/Pretendard-Regular.woff2) format('woff2');
 }
 
+/*Medium*/
+@font-face {
+	font-family: 'Pretendard';
+	font-style: normal;
+	font-weight: 500;
+	font-display: swap;
+	src:
+		url(/fonts/Pretendard-Medium.otf) format('truetype'),
+		url(/fonts/Pretendard-Medium.ttf) format('ttf'),
+		url(/fonts/Pretendard-Medium.woff) format('woff'),
+		url(/fonts/Pretendard-Medium.woff2) format('woff2');
+}
+
 /*Semibold*/
 @font-face {
 	font-family: 'Pretendard';
