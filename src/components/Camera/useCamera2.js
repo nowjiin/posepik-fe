@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 // 이미지 분석 기반 카메라 기능 관리
 const useCamera = () => {
@@ -18,6 +19,7 @@ const useCamera = () => {
 	// 이미지 분석 결과 저장
 	const [silhouetteMap, setSilhouetteMap] = useState(null);
 	const [silhouetteLoaded, setSilhouetteLoaded] = useState(false);
+	const navigate = useNavigate();
 
 	// 카메라 시작
 	const startCamera = async () => {
@@ -509,6 +511,7 @@ const useCamera = () => {
 			// 업로드된 파일 URL 반환
 			const result = await serverResponse.text();
 			console.log('S3 업로드 성공:', result);
+			navigate('/camera-result/:2');
 			return result;
 		} catch (error) {
 			console.error('S3 업로드 에러:', error);
