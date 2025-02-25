@@ -5,10 +5,11 @@ export const Input = styled.div`
 	display: flex;
 	flex-direction: column;
 	gap: 4px;
+	width: 100%;
 `;
 
 export const InputText = styled.input`
-	width: 356px;
+	width: 100%;
 	padding: 14.65px 12.35px;
 	box-sizing: border-box;
 	border-radius: 7px;

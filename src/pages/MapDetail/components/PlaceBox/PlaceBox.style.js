@@ -2,7 +2,7 @@ import styled from 'styled-components';
 import { theme } from '@styles/theme';
 
 export const Container = styled.div`
-	width: 362px;
+	width: 100%;
 	box-sizing: border-box;
 	padding: 14px 11px;
 	display: flex;

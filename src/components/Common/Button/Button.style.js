@@ -5,7 +5,7 @@ export const ButtonContainer = styled.button`
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	width: 341px;
+	width: 100%;
 	height: 55px;
 	background-color: ${props => (props.$isActive ? `${theme.COLOR.SubBlue1}` : `${theme.COLOR.SubBlue2}`)};
 	border-radius: 7px;
