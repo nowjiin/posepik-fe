@@ -75,7 +75,7 @@ export const ButtonSpaceContainer = styled.div`
 	box-sizing: border-box;
 	display: flex;
 	justify-content: space-between;
-	align-items: center;
+	align-items: flex-start;
 `;
 
 export const ButtonContainer = styled.div`

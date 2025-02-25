@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useParams } from 'react-router-dom';
 import * as S from './CameraResult.style';
 import BackHeader from '@components/Common/Header/BackHeader';
 import AccuracyBar from '@pages/CameraResult/components/AccuracyBar/AccuracyBar';
@@ -6,16 +7,41 @@ import InputText from '@components/Common/InputText/InputText';
 import Button from '@components/Common/Button/Button';
 import Download from '@assets/svg/icon-download.svg';
 import Upload from '@assets/svg/icon-upload.svg';
+import ResultModal from './components/ResultModal/ResultModal';
 
 export default function CameraResult() {
-	const [projectName, setProjectName] = useState('');
+	const { id } = useParams();
+	const [rankingName, setRankingName] = useState('');
+	const [isModalOpen, setIsModalOpen] = useState(false);
 
-	const handleInputChange = value => {
-		setProjectName(value);
+	const openModal = () => {
+		setIsModalOpen(true);
 	};
 
-	const sampleButton = () => {
-		alert('다음으로 버튼이 클릭되었습니다.');
+	const closeModal = () => {
+		setIsModalOpen(false);
+	};
+
+	const handleInputChange = value => {
+		setRankingName(value);
+	};
+
+	const handleDownloadImage = () => {
+		const imageUrl = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQqV-EpDA9QlYzrKkI-xVr6FFolVlQaqZQQbw&s';
+		const link = document.createElement('a');
+		link.href = imageUrl;
+		link.download = 'photo_score_image.jpg'; // 저장될 파일명
+		document.body.appendChild(link);
+		link.click();
+		document.body.removeChild(link);
+	};
+
+	const handleShareOnInstagram = () => {
+		const imageUrl = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQqV-EpDA9QlYzrKkI-xVr6FFolVlQaqZQQbw&s';
+		const encodedUrl = encodeURIComponent(imageUrl);
+		const instagramUrl = `https://www.instagram.com/sharer.php?u=${encodedUrl}`;
+
+		window.open(instagramUrl, '_blank'); // 새 창에서 공유
 	};
 
 	return (
@@ -39,20 +65,20 @@ export default function CameraResult() {
 								placeholder="닉네임(1~12자 입력 가능)"
 								warningMsg="*유효하지 않은 닉네임입니다."
 								isEssential={true}
-								value={projectName}
+								value={rankingName}
 								onInputChange={handleInputChange}
 							/>
 						</S.InputContainer>
 					</S.TextContainer>
-					<Button text="다음으로" onClick={sampleButton} isActive={false} />
+					<Button text="다음으로" onClick={openModal} isActive={rankingName.trim() !== ''} />
 					<S.ButtonSpaceContainer>
-						<S.ButtonContainer>
+						<S.ButtonContainer onClick={handleDownloadImage}>
 							<S.Button>
 								<S.ButtonImg src={Download} alt="저장하기" />
 							</S.Button>
 							사진 저장하기
 						</S.ButtonContainer>
-						<S.ButtonContainer>
+						<S.ButtonContainer onClick={handleShareOnInstagram}>
 							<S.Button>
 								<S.ButtonImg src={Upload} alt="공유하기" />
 							</S.Button>
@@ -63,6 +89,7 @@ export default function CameraResult() {
 					</S.ButtonSpaceContainer>
 				</S.BodyContainer>
 			</S.Container>
+			{isModalOpen && <ResultModal id={id} onClose={closeModal} />}
 		</S.Space>
 	);
 }

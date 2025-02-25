@@ -20,7 +20,7 @@ const AppRoutes = () => {
 				<Route path="/map-detail" element={<MapDetail />} />
 				<Route path="/picture-detail/:id" element={<PictureDetail />} />
 				<Route path="/camera" element={<Camera />} />
-				<Route path="/camera-result" element={<CameraResult />} />
+				<Route path="/camera-result/:id" element={<CameraResult />} />
 				<Route path="/*" element={<Error />} />
 			</Routes>
 		</BrowserRouter>
