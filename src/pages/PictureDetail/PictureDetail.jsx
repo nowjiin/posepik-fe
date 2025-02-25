@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import * as S from './PictureDetail.style';
 import BackHeader from '@components/Common/Header/BackHeader';
 import CameraButton from '@components/Common/CameraButton/CameraButton';
@@ -12,6 +13,8 @@ import third from '@assets/svg/icon-3rd-medal.svg';
 import RankingModal from './components/RankingModal/RankingModal';
 
 export default function PictureDetail() {
+	const { id } = useParams();
+	const navigate = useNavigate();
 	const [isModalOpen, setIsModalOpen] = useState(false);
 
 	const openModal = () => {
@@ -22,22 +25,62 @@ export default function PictureDetail() {
 		setIsModalOpen(false);
 	};
 
+	const photoList = [
+		{
+			id: 0,
+			imageUrl: 'https://github.com/user-attachments/assets/306149ff-dc7d-487c-a3ee-595ab00ea5bf',
+			location: '퐁 드 비르 아케임 다리에서 남쪽을 향해 촬영',
+			instagram: 'jennierubyjane',
+		},
+		{
+			id: 1,
+			imageUrl: 'https://github.com/user-attachments/assets/425146d7-bef8-4a7c-b693-4048c429008c',
+			location: '샤요 궁(Palais de Chaillot) 방향에서 남쪽',
+			instagram: 'jiraishin99',
+		},
+		{
+			id: 2,
+			imageUrl: 'https://github.com/user-attachments/assets/fe461828-78d8-4f53-8710-d61e94e2dc09',
+			location: '퐁 드 비르 아케임 다리에서 남쪽을 향해 촬영',
+			instagram: '_yujin_an',
+		},
+		{
+			id: 3,
+			imageUrl: 'https://github.com/user-attachments/assets/e7802c41-61ed-4a28-ae9a-806384612b77',
+			location: 'Port Debilly 근처 강변에서 남동쪽 방향',
+			instagram: 'for_everyoung10',
+		},
+		{
+			id: 4,
+			imageUrl: 'https://github.com/user-attachments/assets/5f4e383e-45c8-4df2-9b21-483df58a5bcf',
+			location: 'Port Debilly 근처 강변에서 남동쪽 방향',
+			instagram: '_yujin_an',
+		},
+	];
+
+	const selectedPhoto = photoList.find(photo => photo.id === Number(id));
+	const routeNum = Number(id) + 1;
+
+	const handleCameraButtonClick = () => {
+		navigate(`/camera${routeNum}`);
+	};
+
 	return (
 		<S.Space>
 			<BackHeader />
 			<S.Container>
 				<S.BodyContainer>
 					<S.TopContainer>
-						<InstagramBox instagramID="jennierubyjane" />
-						<S.InstaImg src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQqV-EpDA9QlYzrKkI-xVr6FFolVlQaqZQQbw&s" />
-						<PicGuideBox guide="샤요 궁(Palais de Chaillot) 방향에서 남쪽" />
+						<InstagramBox instagramID={selectedPhoto?.instagram || 'unknown'} />
+						<S.InstaImg src={selectedPhoto?.imageUrl || ''} />
+						<PicGuideBox guide={selectedPhoto?.location || '위치 정보 없음'} />
 					</S.TopContainer>
 					<S.TextContainer>
 						<S.TitleContainer>포토 팁</S.TitleContainer>
 						<DescriptionBox
 							description="이 사진을 보면 에펠탑이 정면으로 보이고, 넓은 광장이 있으며, 바닥이 돌로 
             포장되어 있습니다. 이런 특징을 고려했을 때, 샤요 궁(Palais de Chaillot) 
-            방향에서 남쪽을 바라보며 촬영한 사진일 가능성이 높습니다. 최대3줄입니다ㅏㅏㅏ"
+            방향에서 남쪽을 바라보며 촬영한 사진일 가능성이 높습니다."
 						/>
 					</S.TextContainer>
 					<S.TextContainer style={{ marginTop: '30px', marginBottom: '100px' }}>
@@ -79,7 +122,7 @@ export default function PictureDetail() {
 					</S.TextContainer>
 				</S.BodyContainer>
 				<S.ButtonContainer>
-					<CameraButton />
+					<CameraButton onClick={handleCameraButtonClick} />
 				</S.ButtonContainer>
 			</S.Container>
 			{isModalOpen && <RankingModal onClose={closeModal} />}

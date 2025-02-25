@@ -66,7 +66,7 @@ function GoogleMap() {
 
 		// 🔹 프로필 이미지 추가
 		const img = document.createElement('img');
-		img.src = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQqV-EpDA9QlYzrKkI-xVr6FFolVlQaqZQQbw&s';
+		img.src = 'https://github.com/user-attachments/assets/306149ff-dc7d-487c-a3ee-595ab00ea5bf';
 		img.alt = '이미지';
 		img.style.position = 'absolute';
 		img.style.top = '6px';
