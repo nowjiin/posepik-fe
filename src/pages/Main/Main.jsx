@@ -10,6 +10,7 @@ import GuideBox from '@pages/MapDetail/components/GuideBox/GuideBox';
 import DescriptionBox from '@pages/PictureDetail/components/DescriptionBox/DescriptionBox';
 import InstagramBox from '@pages/PictureDetail/components/InstagramBox/InstagramBox';
 import PicGuideBox from '@pages/PictureDetail/components/PicGuideBox/PicGuideBox';
+import AccuracyBar from '@pages/CameraResult/components/AccuracyBar/AccuracyBar';
 
 function Main() {
 	const [projectName, setProjectName] = useState('');
@@ -50,6 +51,7 @@ function Main() {
 				/>
 				<InstagramBox instagramID="jennierubyjane" />
 				<PicGuideBox guide="샤요 궁(Palais de Chaillot) 방향에서 남쪽" />
+				<AccuracyBar percentage="98.5" />
 			</S.Main>
 		</>
 	);
