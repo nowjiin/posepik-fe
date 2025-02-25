@@ -1,31 +1,33 @@
 import { useState, useEffect, useRef } from 'react';
 
-// 카메라 기능 관리
-// 카메라 시작/종료, 촬영, 사람 감지
+// 이미지 분석 기반 카메라 기능 관리
 const useCamera = () => {
 	const videoRef = useRef(null);
 	const canvasRef = useRef(null);
+	const silhouetteCanvasRef = useRef(document.createElement('canvas')); // 실루엣 분석용 캔버스
 	const [isCameraOn, setIsCameraOn] = useState(false);
 	const [cameraError, setCameraError] = useState(null);
 	const [capturedImage, setCapturedImage] = useState(null);
-	const [facingMode, setFacingMode] = useState('environment'); // 'user' (전면) 또는 'environment' (후면)
-	const [isFlipped, setIsFlipped] = useState(false); // 좌우 반전 상태
-	const [personDetected, setPersonDetected] = useState(false); // 프레임 내 사람 감지 여부
-	const [detectionActive, setDetectionActive] = useState(false); // 감지 기능 활성화 여부
-	const [poseDetector, setPoseDetector] = useState(null); // MediaPipe Pose 감지기
-	const [detectionPercentage, setDetectionPercentage] = useState(0); // 감지된 키포인트 비율
+	const [facingMode, setFacingMode] = useState('environment');
+	const [isFlipped, setIsFlipped] = useState(false);
+	const [personDetected, setPersonDetected] = useState(false);
+	const [detectionPercentage, setDetectionPercentage] = useState(0);
+	const [detectionActive, setDetectionActive] = useState(false);
+	const [poseDetector, setPoseDetector] = useState(null);
+
+	// 이미지 분석 결과 저장
+	const [silhouetteMap, setSilhouetteMap] = useState(null);
+	const [silhouetteLoaded, setSilhouetteLoaded] = useState(false);
 
 	// 카메라 시작
 	const startCamera = async () => {
 		try {
-			// 3:4 비율로 설정 (세로가 긴 형태)
 			const constraints = {
 				video: {
 					facingMode: facingMode,
 				},
 			};
 
-			// 카메라 스트림 요청
 			const stream = await navigator.mediaDevices.getUserMedia(constraints);
 
 			if (videoRef.current) {
@@ -49,21 +51,286 @@ const useCamera = () => {
 		}
 	};
 
-	// 카메라 전환 (전면/후면)
+	// 실루엣 이미지 분석
+	const analyzeSilhouetteImage = imagePath => {
+		return new Promise((resolve, reject) => {
+			const img = new Image();
+			img.crossOrigin = 'Anonymous'; // CORS 이슈 방지
+
+			img.onload = () => {
+				// 캔버스 설정
+				const canvas = silhouetteCanvasRef.current;
+				canvas.width = img.width;
+				canvas.height = img.height;
+				const ctx = canvas.getContext('2d');
+
+				// 이미지 그리기
+				ctx.clearRect(0, 0, canvas.width, canvas.height);
+				ctx.drawImage(img, 0, 0);
+
+				// 픽셀 데이터 가져오기
+				const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+				const data = imageData.data;
+
+				// 이미지를 영역별로 분석 (상단/중단/하단 및 좌/중/우)
+				// 각 영역별 불투명 픽셀의 분포도 계산
+				const regionMap = createRegionMap(data, canvas.width, canvas.height);
+
+				// 이미지 분석 완료
+				setSilhouetteMap(regionMap);
+				setSilhouetteLoaded(true);
+				resolve(regionMap);
+			};
+
+			img.onerror = error => {
+				console.error('실루엣 이미지 로드 실패:', error);
+				reject(error);
+			};
+
+			img.src = imagePath;
+		});
+	};
+
+	// 이미지 영역 맵 생성
+	const createRegionMap = (imageData, width, height) => {
+		// 이미지를 9개 영역으로 나눔 (3x3 그리드)
+		const regions = {
+			topLeft: { pixels: [], opacity: 0 },
+			topCenter: { pixels: [], opacity: 0 },
+			topRight: { pixels: [], opacity: 0 },
+			middleLeft: { pixels: [], opacity: 0 },
+			middleCenter: { pixels: [], opacity: 0 },
+			middleRight: { pixels: [], opacity: 0 },
+			bottomLeft: { pixels: [], opacity: 0 },
+			bottomCenter: { pixels: [], opacity: 0 },
+			bottomRight: { pixels: [], opacity: 0 },
+		};
+
+		// 각 영역의 크기
+		const regionWidth = width / 3;
+		const regionHeight = height / 3;
+
+		// 각 픽셀이 어느 영역에 속하는지, 그리고 불투명도 계산
+		for (let y = 0; y < height; y++) {
+			for (let x = 0; x < width; x++) {
+				const index = (y * width + x) * 4;
+				const alpha = imageData[index + 3]; // 알파 채널 (0-255)
+
+				if (alpha > 20) {
+					// 어느 정도 불투명한 픽셀만 고려
+					// 픽셀이 속한 영역 결정
+					const regionX = Math.floor(x / regionWidth);
+					const regionY = Math.floor(y / regionHeight);
+
+					let regionKey;
+					if (regionY === 0) {
+						if (regionX === 0) regionKey = 'topLeft';
+						else if (regionX === 1) regionKey = 'topCenter';
+						else regionKey = 'topRight';
+					} else if (regionY === 1) {
+						if (regionX === 0) regionKey = 'middleLeft';
+						else if (regionX === 1) regionKey = 'middleCenter';
+						else regionKey = 'middleRight';
+					} else {
+						if (regionX === 0) regionKey = 'bottomLeft';
+						else if (regionX === 1) regionKey = 'bottomCenter';
+						else regionKey = 'bottomRight';
+					}
+
+					// 정규화된 좌표 (0-1 범위)
+					const normX = x / width;
+					const normY = y / height;
+
+					regions[regionKey].pixels.push({ x: normX, y: normY, alpha: alpha / 255 });
+					regions[regionKey].opacity += alpha;
+				}
+			}
+		}
+
+		// 각 영역의 평균 불투명도 계산
+		for (const key in regions) {
+			if (regions[key].pixels.length > 0) {
+				regions[key].opacity /= regions[key].pixels.length * 255;
+			}
+
+			// 각 영역의 중심점 계산
+			if (regions[key].pixels.length > 0) {
+				let sumX = 0,
+					sumY = 0;
+				for (const pixel of regions[key].pixels) {
+					sumX += pixel.x;
+					sumY += pixel.y;
+				}
+				regions[key].centerX = sumX / regions[key].pixels.length;
+				regions[key].centerY = sumY / regions[key].pixels.length;
+			}
+		}
+
+		// 키포인트 영역 매핑 (어느 키포인트가 어느 영역에 있어야 하는지)
+		const keypointMapping = {
+			// 얼굴 부분
+			0: ['topCenter'], // 코
+			1: ['topCenter'], // 왼쪽 눈
+			2: ['topCenter'], // 오른쪽 눈
+			3: ['topLeft', 'topCenter'], // 왼쪽 귀
+			4: ['topRight', 'topCenter'], // 오른쪽 귀
+
+			// 어깨 부분
+			11: ['middleLeft', 'topLeft'], // 왼쪽 어깨
+			12: ['middleRight', 'topRight'], // 오른쪽 어깨
+
+			// 팔 부분
+			13: ['middleLeft'], // 왼쪽 팔꿈치
+			14: ['middleRight'], // 오른쪽 팔꿈치
+			15: ['bottomLeft'], // 왼쪽 손목
+			16: ['bottomRight'], // 오른쪽 손목
+		};
+
+		return { regions, keypointMapping };
+	};
+
+	// 키포인트가 실루엣에 맞는지 확인
+	const checkLandmarksMatchSilhouette = (landmarks, silhouetteMap) => {
+		if (!landmarks || landmarks.length === 0 || !silhouetteMap) return 0;
+
+		const { regions, keypointMapping } = silhouetteMap;
+		let matchedPoints = 0;
+		let totalPoints = 0;
+
+		// 각 키포인트가 매핑된 영역 내에 있는지 확인
+		for (const [keypointIndex, allowedRegions] of Object.entries(keypointMapping)) {
+			const keypoint = landmarks[parseInt(keypointIndex)];
+
+			if (keypoint && keypoint.visibility > 0.5) {
+				totalPoints++;
+				const { x, y } = keypoint;
+
+				// 이 키포인트가 허용된 영역 중 하나에 있는지 확인
+				for (const regionKey of allowedRegions) {
+					const region = regions[regionKey];
+
+					// 해당 영역에 픽셀이 있는지 확인
+					if (region.pixels.length > 0) {
+						// 키포인트와 가장 가까운 픽셀 찾기
+						let minDistance = Infinity;
+						for (const pixel of region.pixels) {
+							const distance = Math.sqrt(Math.pow(x - pixel.x, 2) + Math.pow(y - pixel.y, 2));
+							minDistance = Math.min(minDistance, distance);
+						}
+
+						// 임계값 이내에 있으면 매치된 것으로 간주
+						// 이 값은 조정 필요 (0.1 = 이미지 크기의 10% 내)
+						if (minDistance < 0.15) {
+							matchedPoints++;
+							break; // 하나의 영역에 매치되면 충분
+						}
+					}
+				}
+			}
+		}
+
+		// 매치율 계산 (백분율)
+		return totalPoints > 0 ? Math.round((matchedPoints / totalPoints) * 100) : 0;
+	};
+
+	// MediaPipe Pose 모델 초기화
+	const initPoseDetection = async () => {
+		try {
+			// 이미 감지기가 있으면 재사용
+			if (poseDetector) {
+				setDetectionActive(true);
+				return;
+			}
+
+			// 실루엣 이미지 분석 (이미 분석되어 있지 않으면)
+			if (!silhouetteLoaded) {
+				await analyzeSilhouetteImage('/images/upperbody.png');
+			}
+
+			// MediaPipe Pose 모델 로드
+			const pose = await import('@mediapipe/pose');
+			const drawingUtils = await import('@mediapipe/drawing_utils');
+			const camera = await import('@mediapipe/camera_utils');
+
+			// 감지기 초기화
+			const detector = new pose.Pose({
+				locateFile: file => {
+					return `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`;
+				},
+			});
+
+			// 설정
+			await detector.setOptions({
+				modelComplexity: 1,
+				smoothLandmarks: true,
+				minDetectionConfidence: 0.5,
+				minTrackingConfidence: 0.5,
+			});
+
+			// 결과 콜백
+			detector.onResults(results => {
+				if (results.poseLandmarks) {
+					// 실루엣 이미지와 키포인트 매칭 검사
+					const matchPercentage = checkLandmarksMatchSilhouette(results.poseLandmarks, silhouetteMap);
+
+					setDetectionPercentage(matchPercentage);
+					setPersonDetected(matchPercentage >= 60); // 60% 이상 매치되면 검출 성공
+				} else {
+					setPersonDetected(false);
+					setDetectionPercentage(0);
+				}
+			});
+
+			setPoseDetector(detector);
+			setDetectionActive(true);
+
+			// 자동 감지 시작
+			startDetection(detector);
+		} catch (error) {
+			console.error('MediaPipe 로드 오류:', error);
+			setCameraError('사람 감지 기능을 로드하는 데 실패했습니다.');
+		}
+	};
+
+	// 감지 기능 시작
+	const startDetection = detector => {
+		if (!videoRef.current || !detector) return;
+
+		const detectFrame = async () => {
+			if (!videoRef.current || !isCameraOn || !detectionActive) return;
+
+			try {
+				// 현재 비디오 프레임 전달
+				await detector.send({ image: videoRef.current });
+
+				// 다음 프레임
+				if (isCameraOn && detectionActive) {
+					requestAnimationFrame(detectFrame);
+				}
+			} catch (error) {
+				console.error('프레임 감지 오류:', error);
+			}
+		};
+
+		// 감지 루프 시작
+		detectFrame();
+	};
+
+	// 다른 기본 기능들 (카메라 전환, 좌우 반전, 사진 촬영 등)
 	const switchCamera = async () => {
-		// 현재 실행 중인 카메라 스트림을 중지
+		// 현재 카메라 중지
 		if (videoRef.current && videoRef.current.srcObject) {
 			const tracks = videoRef.current.srcObject.getTracks();
 			tracks.forEach(track => track.stop());
 			videoRef.current.srcObject = null;
 		}
 
-		// facingMode 상태 즉시 변경
+		// facingMode 변경
 		const newFacingMode = facingMode === 'user' ? 'environment' : 'user';
 		setFacingMode(newFacingMode);
 
 		try {
-			// 새로운 facingMode로 카메라 직접 시작
+			// 새 카메라 시작
 			const stream = await navigator.mediaDevices.getUserMedia({
 				video: {
 					facingMode: newFacingMode,
@@ -86,25 +353,25 @@ const useCamera = () => {
 		setIsFlipped(prev => !prev);
 	};
 
-	// 사진 촬영 (반전 상태 고려)
+	// 사진 촬영
 	const capturePhoto = () => {
 		if (videoRef.current && canvasRef.current && isCameraOn) {
 			const video = videoRef.current;
 			const canvas = canvasRef.current;
 			const context = canvas.getContext('2d');
 
-			// 비디오 크기 가져오기
+			// 비디오 크기
 			const videoWidth = video.videoWidth;
 			const videoHeight = video.videoHeight;
 
-			// 세로 모드에 맞게 3:4 비율로 캔버스 설정
-			canvas.width = Math.min(videoWidth, videoHeight * 0.75); // 3:4 비율에서 가로는 세로*0.75
-			canvas.height = Math.min(videoHeight, videoWidth * 1.33); // 3:4 비율에서 세로는 가로*1.33
+			// 3:4 비율로 캔버스 설정
+			canvas.width = Math.min(videoWidth, videoHeight * 0.75);
+			canvas.height = Math.min(videoHeight, videoWidth * 1.33);
 
 			// 캔버스 초기화
 			context.clearRect(0, 0, canvas.width, canvas.height);
 
-			// 비디오의 중앙에서 캡처할 영역 계산
+			// 중앙에서 캡처
 			const sourceX = (videoWidth - canvas.width) / 2;
 			const sourceY = (videoHeight - canvas.height) / 2;
 
@@ -128,8 +395,8 @@ const useCamera = () => {
 				context.drawImage(video, sourceX, sourceY, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
 			}
 
-			// 캔버스의 이미지 데이터를 base64 형식으로 추출
-			const imageData = canvas.toDataURL('image/jpeg', 0.9); // 높은 품질로 저장
+			// 이미지 데이터 추출
+			const imageData = canvas.toDataURL('image/jpeg', 0.9);
 			setCapturedImage(imageData);
 
 			return imageData;
@@ -137,7 +404,7 @@ const useCamera = () => {
 		return null;
 	};
 
-	// 사진 전송 함수
+	// 사진 전송
 	const sendPhotoToBackend = async () => {
 		const imageData = capturePhoto();
 
@@ -169,197 +436,35 @@ const useCamera = () => {
 		}
 	};
 
-	// MediaPipe Pose 모델 초기화
-	const initPoseDetection = async () => {
-		try {
-			// 이미 감지기가 생성되어 있으면 재사용
-			if (poseDetector) {
-				setDetectionActive(true);
-				return;
-			}
-
-			// MediaPipe Pose 모델 로드
-			const pose = await import('@mediapipe/pose');
-			const drawingUtils = await import('@mediapipe/drawing_utils');
-			const camera = await import('@mediapipe/camera_utils');
-
-			// 감지기 초기화
-			const detector = new pose.Pose({
-				locateFile: file => {
-					return `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`;
-				},
-			});
-
-			// 설정 (성능과 정확도 밸런스)
-			await detector.setOptions({
-				modelComplexity: 1, // 0: 라이트, 1: 풀
-				smoothLandmarks: true,
-				minDetectionConfidence: 0.5,
-				minTrackingConfidence: 0.5,
-			});
-
-			// 결과 처리 콜백
-			detector.onResults(results => {
-				if (results.poseLandmarks) {
-					// 감지된 키포인트가 프레임 내에 있는지 확인
-					const insidePercentage = checkLandmarksInFrame(results.poseLandmarks);
-					setDetectionPercentage(insidePercentage);
-					setPersonDetected(insidePercentage >= 60); // 60% 이상의 키포인트가 프레임 내에 있으면 검출 성공
-				} else {
-					setPersonDetected(false);
-					setDetectionPercentage(0);
-				}
-			});
-
-			setPoseDetector(detector);
-			setDetectionActive(true);
-
-			// 자동 감지 시작
-			startDetection(detector);
-		} catch (error) {
-			console.error('MediaPipe 로드 오류:', error);
-			setCameraError('사람 감지 기능을 로드하는 데 실패했습니다.');
-		}
-	};
-
-	// 감지 기능 시작
-	const startDetection = detector => {
-		if (!videoRef.current || !detector) return;
-
-		const detectFrame = async () => {
-			if (!videoRef.current || !isCameraOn || !detectionActive) return;
-
-			try {
-				// 현재 비디오 프레임을 감지기에 전달
-				await detector.send({ image: videoRef.current });
-
-				// 다음 프레임 처리
-				if (isCameraOn && detectionActive) {
-					requestAnimationFrame(detectFrame);
-				}
-			} catch (error) {
-				console.error('프레임 감지 오류:', error);
-			}
-		};
-
-		// 감지 루프 시작
-		detectFrame();
-	};
-
-	// 키포인트가 상체 이미지 가이드에 맞는지 확인
-	const checkLandmarksInFrame = landmarks => {
-		if (!landmarks || landmarks.length === 0) return 0;
-
-		// 상체 이미지 가이드 영역 (10%-90% 영역으로 설정했으므로 넓게 잡음)
-		const imageRect = {
-			left: 0.1, // 왼쪽 10% 지점
-			top: 0.1, // 위쪽 10% 지점
-			right: 0.9, // 오른쪽 90% 지점
-			bottom: 0.9, // 아래쪽 90% 지점
-		};
-
-		// 상체에 해당하는 키포인트만 선택
-		const upperBodyLandmarks = [
-			0, // 코
-			1,
-			2,
-			3,
-			4, // 눈, 귀
-			5,
-			6,
-			7,
-			8,
-			9,
-			10, // 입, 얼굴
-			11,
-			12, // 어깨
-			13,
-			14, // 팔꿈치
-			15,
-			16, // 손목
-		];
-
-		// 프레임 내에 있는 키포인트 카운트
-		let pointsInFrame = 0;
-		let totalPoints = 0;
-
-		for (const index of upperBodyLandmarks) {
-			if (landmarks[index] && landmarks[index].visibility > 0.5) {
-				totalPoints++;
-
-				const { x, y } = landmarks[index];
-
-				// 키포인트가 이미지 가이드 영역 내에 있는지 확인
-				// 상체 이미지는 중앙에 있으므로 별도 위치 조정이 필요할 수 있음
-				// 기본 영역은 넓게 설정하고 특정 키포인트는 더 자세한 위치 검증 가능
-				if (checkPointInUpperbodyArea(index, x, y)) {
-					pointsInFrame++;
-				}
-			}
-		}
-
-		// 프레임 내 키포인트 비율 계산 (백분율)
-		return totalPoints > 0 ? Math.round((pointsInFrame / totalPoints) * 100) : 0;
-	};
-
-	// 특정 키포인트가 상체 이미지의 적절한 위치에 있는지 체크
-	const checkPointInUpperbodyArea = (index, x, y) => {
-		// 기본 영역 (전체 가이드 이미지 영역)
-		const baseRect = {
-			left: 0.1,
-			top: 0.1,
-			right: 0.9,
-			bottom: 0.9,
-		};
-
-		// 상체 이미지에 맞춘 세부 영역 정의
-		// 여기서 키포인트별로 더 세밀하게 위치 조정 가능
-		const areaMap = {
-			// 얼굴 영역 (상단 중앙)
-			0: { left: 0.35, top: 0.1, right: 0.65, bottom: 0.3 }, // 코
-			1: { left: 0.35, top: 0.1, right: 0.65, bottom: 0.25 }, // 왼쪽 눈
-			2: { left: 0.35, top: 0.1, right: 0.65, bottom: 0.25 }, // 오른쪽 눈
-
-			// 어깨 영역 (중단부)
-			11: { left: 0.2, top: 0.3, right: 0.45, bottom: 0.5 }, // 왼쪽 어깨
-			12: { left: 0.55, top: 0.3, right: 0.8, bottom: 0.5 }, // 오른쪽 어깨
-
-			// 팔 영역
-			13: { left: 0.05, top: 0.4, right: 0.4, bottom: 0.7 }, // 왼쪽 팔꿈치
-			14: { left: 0.6, top: 0.4, right: 0.95, bottom: 0.7 }, // 오른쪽 팔꿈치
-			15: { left: 0.05, top: 0.5, right: 0.4, bottom: 0.9 }, // 왼쪽 손목
-			16: { left: 0.6, top: 0.5, right: 0.95, bottom: 0.9 }, // 오른쪽 손목
-		};
-
-		// 해당 키포인트의 특정 영역이 정의되어 있는지 확인
-		if (index in areaMap) {
-			const area = areaMap[index];
-			return x >= area.left && x <= area.right && y >= area.top && y <= area.bottom;
-		}
-
-		// 특정 영역이 정의되지 않은 키포인트는 기본 영역으로 체크
-		return x >= baseRect.left && x <= baseRect.right && y >= baseRect.top && y <= baseRect.bottom;
-	};
-
-	// 컴포넌트 마운트 시 카메라 시작
+	// 컴포넌트 마운트 시 실행
 	useEffect(() => {
-		startCamera();
+		// 실루엣 이미지 미리 분석
+		analyzeSilhouetteImage('/images/upperbody.png')
+			.then(() => {
+				console.log('실루엣 이미지 분석 완료');
+				// 카메라 시작
+				startCamera();
+			})
+			.catch(error => {
+				console.error('실루엣 분석 에러:', error);
+				setCameraError('실루엣 이미지를 분석하는 데 실패했습니다.');
+			});
 
-		// 컴포넌트 언마운트 시 정리
+		// 언마운트 시
 		return () => {
 			stopCamera();
 			setDetectionActive(false);
 		};
-	}, []); // 빈 의존성 배열로 최초 한 번만 실행
+	}, []);
 
-	// 카메라가 켜지면 자동으로 감지 시작
+	// 카메라가 켜지면 감지 시작
 	useEffect(() => {
-		if (isCameraOn) {
+		if (isCameraOn && silhouetteLoaded) {
 			initPoseDetection();
 		}
-	}, [isCameraOn]);
+	}, [isCameraOn, silhouetteLoaded]);
 
-	// pose detector가 설정되면 감지 시작
+	// 감지기가 설정되면 감지 시작
 	useEffect(() => {
 		if (poseDetector && isCameraOn && detectionActive) {
 			startDetection(poseDetector);
@@ -382,7 +487,7 @@ const useCamera = () => {
 		sendPhotoToBackend,
 		switchCamera,
 		toggleFlip,
-		initPoseDetection,
+		silhouetteLoaded,
 	};
 };
 
