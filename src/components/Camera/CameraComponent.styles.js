@@ -359,3 +359,93 @@ export const DetectionStatus = styled.div`
 	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
 	transition: background-color 0.3s;
 `;
+
+/* CameraComponent.styles.js에 추가할 스타일 */
+
+// 스캔 애니메이션 컨테이너
+export const ScanAnimationContainer = styled.div`
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	pointer-events: none;
+	z-index: 25; // CapturedImageContainer보다 위에 표시
+	overflow: hidden;
+`;
+
+// 스캔 라인 애니메이션
+export const ScanLine = styled.div`
+	position: absolute;
+	left: 0;
+	width: 100%;
+	height: 4px;
+	background: linear-gradient(to right, rgba(0, 200, 255, 0.2), rgba(0, 200, 255, 0.8) 50%, rgba(0, 200, 255, 0.2));
+	box-shadow: 0 0 8px rgba(0, 220, 255, 0.8);
+	z-index: 2;
+	animation: scanAnimation 2s linear infinite;
+	opacity: ${props => (props.$isActive ? 1 : 0)};
+	transition: opacity 0.3s ease;
+
+	// 스캔 라인 애니메이션
+	@keyframes scanAnimation {
+		0% {
+			top: 0;
+		}
+		100% {
+			top: 100%;
+		}
+	}
+`;
+
+// 스캔 오버레이
+export const ScanOverlay = styled.div`
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background: radial-gradient(ellipse at center, rgba(0, 180, 255, 0.05) 0%, rgba(0, 180, 255, 0.1) 100%);
+	z-index: 1;
+	opacity: ${props => (props.$isActive ? 1 : 0)};
+	transition: opacity 0.3s ease;
+`;
+
+// 스캔 진행 상태 표시
+export const ScanProgress = styled.div`
+	position: absolute;
+	bottom: 20px;
+	left: 50%;
+	transform: translateX(-50%);
+	color: white;
+	font-size: 14px;
+	font-weight: 600;
+	padding: 8px 16px;
+	background-color: rgba(0, 0, 0, 0.6);
+	border-radius: 20px;
+	z-index: 3;
+	opacity: ${props => (props.$isActive ? 1 : 0)};
+	transition: opacity 0.3s ease;
+	text-align: center;
+
+	&::after {
+		content: '';
+		display: inline-block;
+		width: 4px;
+		height: 4px;
+		margin-left: 4px;
+		background-color: white;
+		border-radius: 50%;
+		animation: blink 1s infinite;
+	}
+
+	@keyframes blink {
+		0%,
+		100% {
+			opacity: 0;
+		}
+		50% {
+			opacity: 1;
+		}
+	}
+`;
