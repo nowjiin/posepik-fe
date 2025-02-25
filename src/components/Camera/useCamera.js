@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from 'react';
-import { loadOpenCV, isOpenCVReady } from './OpenCVLoader';
 
 // 카메라 기능 관리
 // 카메라 시작/종료, 촬영, 실루엣 비교
@@ -11,8 +10,10 @@ const useCamera = () => {
 	const [capturedImage, setCapturedImage] = useState(null);
 	const [facingMode, setFacingMode] = useState('environment'); // 'user' (전면) 또는 'environment' (후면)
 	const [isFlipped, setIsFlipped] = useState(false); // 좌우 반전 상태
-	const [silhouetteImage, setSilhouetteImage] = useState('/images/upperbody.png'); // 실루엣 이미지 경로
-	const [positionStatus, setPositionStatus] = useState('none'); // 'none', 'too-close', 'too-far', 'perfect', 'not-centered'
+	const [personDetected, setPersonDetected] = useState(false); // 프레임 내 사람 감지 여부
+	const [detectionActive, setDetectionActive] = useState(false); // 감지 기능 활성화 여부
+	const [poseDetector, setPoseDetector] = useState(null); // MediaPipe Pose 감지기
+	const [detectionPercentage, setDetectionPercentage] = useState(0); // 감지된 키포인트 비율
 
 	// 카메라 시작
 	const startCamera = async () => {
@@ -168,167 +169,153 @@ const useCamera = () => {
 		}
 	};
 
-	// 자세 확인 (실루엣과 사용자 비교)
-	const checkPosition = () => {
-		if (!videoRef.current || !isCameraOn) return;
-
+	// MediaPipe Pose 모델 초기화
+	const initPoseDetection = async () => {
 		try {
-			// OpenCV가 준비되지 않았으면 중단
-			if (!isOpenCVReady()) {
-				console.warn('OpenCV.js가 아직 준비되지 않았습니다.');
+			// 이미 감지기가 생성되어 있으면 재사용
+			if (poseDetector) {
+				setDetectionActive(true);
 				return;
 			}
 
-			// 1. 현재 비디오 프레임 캡처하여 OpenCV 매트로 변환
-			const video = videoRef.current;
-			const tempCanvas = document.createElement('canvas');
-			tempCanvas.width = video.videoWidth;
-			tempCanvas.height = video.videoHeight;
-			const ctx = tempCanvas.getContext('2d');
-			ctx.drawImage(video, 0, 0);
+			// MediaPipe Pose 모델 로드
+			const pose = await import('@mediapipe/pose');
+			const drawingUtils = await import('@mediapipe/drawing_utils');
+			const camera = await import('@mediapipe/camera_utils');
 
-			console.log(`비디오 크기: ${video.videoWidth}x${video.videoHeight}`);
+			// 감지기 초기화
+			const detector = new pose.Pose({
+				locateFile: file => {
+					return `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`;
+				},
+			});
 
-			// 2. 비디오 프레임을 OpenCV 매트로 변환
-			const src = window.cv.imread(tempCanvas);
-			const dst = new window.cv.Mat();
+			// 설정 (성능과 정확도 밸런스)
+			await detector.setOptions({
+				modelComplexity: 1, // 0: 라이트, 1: 풀
+				smoothLandmarks: true,
+				minDetectionConfidence: 0.5,
+				minTrackingConfidence: 0.5,
+			});
 
-			// 3. 전처리 - 그레이스케일 변환 및 블러 적용
-			window.cv.cvtColor(src, dst, window.cv.COLOR_RGBA2GRAY);
-			window.cv.GaussianBlur(dst, dst, new window.cv.Size(5, 5), 0, 0, window.cv.BORDER_DEFAULT);
-
-			// 4. 경계 감지 파라미터 조정 (더 많은 경계 감지를 위해 임계값 낮춤)
-			const edges = new window.cv.Mat();
-			const lowThreshold = 20; // 원래 50에서 낮춤
-			const highThreshold = 100; // 원래 150에서 낮춤
-			window.cv.Canny(dst, edges, lowThreshold, highThreshold);
-
-			// 5. 윤곽선 검출
-			const contours = new window.cv.MatVector();
-			const hierarchy = new window.cv.Mat();
-			window.cv.findContours(edges, contours, hierarchy, window.cv.RETR_EXTERNAL, window.cv.CHAIN_APPROX_SIMPLE);
-			console.log(`감지된 윤곽선 수: ${contours.size()}`);
-
-			// 6. 가장 큰 윤곽선 찾기 (사람으로 가정)
-			let maxArea = 0;
-			let maxContourIndex = -1;
-			let totalArea = 0;
-
-			for (let i = 0; i < contours.size(); i++) {
-				const contour = contours.get(i);
-				const area = window.cv.contourArea(contour);
-				totalArea += area;
-
-				if (area > maxArea) {
-					maxArea = area;
-					maxContourIndex = i;
-				}
-			}
-			console.log(`최대 윤곽선 면적: ${maxArea}, 전체 윤곽선 면적: ${totalArea}`);
-			console.log(`프레임 전체 면적: ${src.rows * src.cols}`);
-
-			// 7. 감지된 가장 큰 윤곽선이 있는지 확인
-			if (maxContourIndex === -1) {
-				console.log('자세 확인: 윤곽선이 감지되지 않았습니다.');
-				setPositionStatus('none'); // 아무것도 감지되지 않음
-			} else {
-				// 8. 감지된 윤곽선의 바운딩 박스 구하기
-				const maxContour = contours.get(maxContourIndex);
-				const boundingRect = window.cv.boundingRect(maxContour);
-
-				// 9. 비디오 프레임 대비 바운딩 박스의 크기 비율 계산
-				const frameArea = src.rows * src.cols;
-				const boundingBoxArea = boundingRect.width * boundingRect.height;
-				const areaRatio = boundingBoxArea / frameArea;
-
-				// 10. 바운딩 박스 중심 위치 계산
-				const centerX = boundingRect.x + boundingRect.width / 2;
-				const centerY = boundingRect.y + boundingRect.height / 2;
-
-				// 11. 화면 중심과의 거리 계산
-				const frameCenter = { x: src.cols / 2, y: src.rows / 2 };
-				const distanceFromCenter = Math.sqrt(
-					Math.pow(centerX - frameCenter.x, 2) + Math.pow(centerY - frameCenter.y, 2),
-				);
-
-				// 12. 중심 거리 비율 계산 (화면 대각선 길이 대비)
-				const diagonalLength = Math.sqrt(Math.pow(src.cols, 2) + Math.pow(src.rows, 2));
-				const centerDistanceRatio = distanceFromCenter / diagonalLength;
-				console.log(
-					`바운딩 박스: x=${boundingRect.x}, y=${boundingRect.y}, width=${boundingRect.width}, height=${boundingRect.height}`,
-				);
-				console.log(`면적 비율: ${areaRatio.toFixed(4)}, 중심 거리 비율: ${centerDistanceRatio.toFixed(4)}`);
-
-				// 13. 크기와 위치에 따라 상태 업데이트 (임계값 조정)
-				if (areaRatio < 0.2) {
-					// 0.25에서 0.20으로 낮춤
-					console.log('자세 확인: 너무 멀리 있음');
-					setPositionStatus('too-far');
-				} else if (areaRatio > 0.65) {
-					// 0.7에서 0.65로 낮춤
-					console.log('자세 확인: 너무 가까이 있음');
-					setPositionStatus('too-close');
-				} else if (centerDistanceRatio > 0.15) {
-					// 0.2에서 0.15로 낮춤
-					console.log('자세 확인: 중앙에 위치하지 않음');
-					setPositionStatus('not-centered');
+			// 결과 처리 콜백
+			detector.onResults(results => {
+				if (results.poseLandmarks) {
+					// 감지된 키포인트가 프레임 내에 있는지 확인
+					const insidePercentage = checkLandmarksInFrame(results.poseLandmarks);
+					setDetectionPercentage(insidePercentage);
+					setPersonDetected(insidePercentage >= 60); // 60% 이상의 키포인트가 프레임 내에 있으면 검출 성공
 				} else {
-					console.log('자세 확인: 적절한 위치');
-					setPositionStatus('perfect');
+					setPersonDetected(false);
+					setDetectionPercentage(0);
 				}
-			}
+			});
 
-			// 14. 사용한 메모리 해제
-			src.delete();
-			dst.delete();
-			edges.delete();
-			contours.delete();
-			hierarchy.delete();
+			setPoseDetector(detector);
+			setDetectionActive(true);
+
+			// 자동 감지 시작
+			startDetection(detector);
 		} catch (error) {
-			console.error('OpenCV 처리 중 오류 발생:', error);
+			console.error('MediaPipe 로드 오류:', error);
+			setCameraError('사람 감지 기능을 로드하는 데 실패했습니다.');
 		}
 	};
 
-	// 컴포넌트 마운트 시 카메라 시작 및 OpenCV 로드
-	useEffect(() => {
-		// 최초 한 번만 실행되도록 빈 의존성 배열 사용
-		const startCameraWithOpenCV = () => {
-			console.log('OpenCV.js를 통한 카메라 시작 시도');
-			startCamera();
+	// 감지 기능 시작
+	const startDetection = detector => {
+		if (!videoRef.current || !detector) return;
+
+		const detectFrame = async () => {
+			if (!videoRef.current || !isCameraOn || !detectionActive) return;
+
+			try {
+				// 현재 비디오 프레임을 감지기에 전달
+				await detector.send({ image: videoRef.current });
+
+				// 다음 프레임 처리
+				if (isCameraOn && detectionActive) {
+					requestAnimationFrame(detectFrame);
+				}
+			} catch (error) {
+				console.error('프레임 감지 오류:', error);
+			}
 		};
 
-		// OpenCV.js 로드 확인 및 카메라 시작
-		loadOpenCV(startCameraWithOpenCV);
+		// 감지 루프 시작
+		detectFrame();
+	};
+
+	// 키포인트가 설정된 프레임 내에 있는지 확인
+	const checkLandmarksInFrame = landmarks => {
+		if (!landmarks || landmarks.length === 0) return 0;
+
+		// 비디오 프레임 크기 (비디오 중앙 60% 영역으로 설정)
+		const frameRect = {
+			left: 0.2, // 왼쪽 20% 지점
+			top: 0.2, // 위쪽 20% 지점
+			right: 0.8, // 오른쪽 80% 지점 (왼쪽에서 20% + 너비 60%)
+			bottom: 0.8, // 아래쪽 80% 지점 (위쪽에서 20% + 높이 60%)
+		};
+
+		// 필수 키포인트 (주요 상체 랜드마크)
+		const essentialLandmarks = [
+			0, // 코
+			11,
+			12, // 어깨
+			13,
+			14, // 팔꿈치
+			15,
+			16, // 손목
+			23,
+			24, // 엉덩이
+		];
+
+		// 프레임 내에 있는 키포인트 카운트
+		let pointsInFrame = 0;
+		let totalPoints = 0;
+
+		for (const index of essentialLandmarks) {
+			if (landmarks[index] && landmarks[index].visibility > 0.5) {
+				totalPoints++;
+
+				const { x, y } = landmarks[index];
+
+				// 키포인트가 지정된 프레임 내에 있는지 확인
+				if (x >= frameRect.left && x <= frameRect.right && y >= frameRect.top && y <= frameRect.bottom) {
+					pointsInFrame++;
+				}
+			}
+		}
+
+		// 프레임 내 키포인트 비율 계산 (백분율)
+		return totalPoints > 0 ? Math.round((pointsInFrame / totalPoints) * 100) : 0;
+	};
+
+	// 컴포넌트 마운트 시 카메라 시작
+	useEffect(() => {
+		startCamera();
 
 		// 컴포넌트 언마운트 시 정리
 		return () => {
-			console.log('카메라 컴포넌트 정리');
 			stopCamera();
+			setDetectionActive(false);
 		};
 	}, []); // 빈 의존성 배열로 최초 한 번만 실행
 
-	// 자세 분석 간격 설정을 위한 별도의 useEffect
+	// 카메라가 켜지면 자동으로 감지 시작
 	useEffect(() => {
-		let positionCheckInterval;
+		if (isCameraOn) {
+			initPoseDetection();
+		}
+	}, [isCameraOn]);
 
-		// OpenCV가 준비되고 카메라가 켜져 있을 때만 자세 분석 간격 시작
-		if (isCameraOn && isOpenCVReady()) {
-			console.log('자세 분석 간격 설정');
-			positionCheckInterval = setInterval(() => {
-				if (isOpenCVReady()) {
-					checkPosition();
-				} else {
-					console.warn('OpenCV.js가 아직 준비되지 않았습니다.');
-				}
-			}, 1000);
-		} // 간격 정리
-		return () => {
-			if (positionCheckInterval) {
-				console.log('자세 분석 간격 정리');
-				clearInterval(positionCheckInterval);
-			}
-		};
-	}, [isCameraOn]); // isCameraOn이 변경될 때만 실행
+	// pose detector가 설정되면 감지 시작
+	useEffect(() => {
+		if (poseDetector && isCameraOn && detectionActive) {
+			startDetection(poseDetector);
+		}
+	}, [poseDetector, isCameraOn, detectionActive]);
 
 	return {
 		videoRef,
@@ -336,16 +323,17 @@ const useCamera = () => {
 		isCameraOn,
 		cameraError,
 		capturedImage,
-		facingMode,
 		isFlipped,
-		silhouetteImage,
-		positionStatus,
+		personDetected,
+		detectionPercentage,
+		detectionActive,
 		startCamera,
 		stopCamera,
 		capturePhoto,
 		sendPhotoToBackend,
 		switchCamera,
 		toggleFlip,
+		initPoseDetection,
 	};
 };
 

@@ -3,7 +3,6 @@ import useCamera from './useCamera';
 import {
 	CameraContainer,
 	VideoContainer,
-	StyledVideo,
 	HiddenCanvas,
 	ControlsContainer,
 	ControlButton,
@@ -15,8 +14,8 @@ import {
 	HeaderBar,
 	HeaderTitle,
 	CloseButton,
-	SilhouetteOverlay,
-	PositionGuide,
+	DetectionStatus,
+	DetectionFrame,
 } from './CameraComponent.styles';
 
 const CameraComponent = () => {
@@ -27,35 +26,22 @@ const CameraComponent = () => {
 		cameraError,
 		capturedImage,
 		isFlipped,
-		silhouetteImage,
-		positionStatus,
+		personDetected,
+		detectionPercentage,
+		detectionActive,
 		startCamera,
 		stopCamera,
 		capturePhoto,
 		sendPhotoToBackend,
 		switchCamera,
 		toggleFlip,
+		initPoseDetection,
 	} = useCamera();
 
 	const [isSending, setIsSending] = useState(false);
 	const [sendError, setSendError] = useState(null);
 	const [showPreview, setShowPreview] = useState(false);
-
-	// 위치 상태에 따른 안내 메시지
-	const getPositionMessage = () => {
-		switch (positionStatus) {
-			case 'too-close':
-				return '뒤로 조금 물러서세요';
-			case 'too-far':
-				return '앞으로 조금 다가오세요';
-			case 'not-centered':
-				return '중앙에 위치해주세요';
-			case 'perfect':
-				return '완벽한 위치입니다!';
-			default:
-				return '';
-		}
-	};
+	const [detectionMessage, setDetectionMessage] = useState('사람 감지 시작하기 위해 버튼을 누르세요');
 
 	// 컴포넌트 마운트 시 자동으로 카메라 시작
 	useEffect(() => {
@@ -65,6 +51,17 @@ const CameraComponent = () => {
 			stopCamera();
 		};
 	}, []);
+
+	// 감지 메시지 업데이트
+	useEffect(() => {
+		if (!detectionActive) {
+			setDetectionMessage('사람 감지 기능을 초기화하는 중...');
+		} else if (personDetected) {
+			setDetectionMessage(`✅ 인식 성공: ${detectionPercentage}% 프레임 안에 있습니다`);
+		} else {
+			setDetectionMessage(`❌ 인식 실패: ${detectionPercentage}% 프레임 안에 있습니다`);
+		}
+	}, [personDetected, detectionPercentage, detectionActive]);
 
 	// 사진 찍기
 	const handleCapture = () => {
@@ -109,6 +106,8 @@ const CameraComponent = () => {
 		// window.history.back() 또는 navigation("/previous-page")
 	};
 
+	const showDetectionElements = isCameraOn && !showPreview;
+
 	return (
 		<CameraContainer>
 			<HeaderBar>
@@ -117,21 +116,43 @@ const CameraComponent = () => {
 			</HeaderBar>
 
 			<VideoContainer>
-				<StyledVideo ref={videoRef} $isFlipped={isFlipped} />
-				<SilhouetteOverlay>
-					<img src={silhouetteImage} alt="실루엣" />
-				</SilhouetteOverlay>
-				<PositionGuide $status={positionStatus}>{getPositionMessage()}</PositionGuide>
+				{!showPreview && (
+					<>
+						{videoRef && (
+							<video
+								ref={videoRef}
+								autoPlay
+								playsInline
+								style={{
+									display: 'block',
+									width: '100%',
+									transform: isFlipped ? 'scaleX(-1)' : 'none',
+								}}
+							/>
+						)}
+						{showDetectionElements && (
+							<>
+								<DetectionFrame $personDetected={personDetected} />
+								<DetectionStatus $personDetected={personDetected}>{detectionMessage}</DetectionStatus>
+							</>
+						)}
+					</>
+				)}
+
 				<HiddenCanvas ref={canvasRef} />
 			</VideoContainer>
 
 			{!showPreview && (
 				<ControlsContainer>
-					<ControlButton onClick={toggleFlip} disabled={!isCameraOn}>
+					<ControlButton onClick={toggleFlip} disabled={!isCameraOn} title="좌우반전">
 						⇄
 					</ControlButton>
-					<CaptureButton onClick={handleCapture} disabled={!isCameraOn} />
-					<ControlButton onClick={switchCamera} disabled={!isCameraOn}>
+					<CaptureButton
+						onClick={handleCapture}
+						disabled={!isCameraOn || !personDetected}
+						title={!personDetected ? '사람이 프레임 안에 있어야 합니다' : '사진 촬영'}
+					/>
+					<ControlButton onClick={switchCamera} disabled={!isCameraOn} title="카메라 전환">
 						⟲
 					</ControlButton>
 				</ControlsContainer>

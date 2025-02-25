@@ -286,3 +286,61 @@ export const CloseButton = styled.button`
 	cursor: pointer;
 	padding: 5px;
 `;
+
+// 감지 프레임 (사각형 영역)
+export const DetectionFrame = styled.div`
+	position: absolute;
+	top: 20%;
+	left: 20%;
+	width: 60%;
+	height: 60%;
+	border: 4px solid ${props => (props.$personDetected ? '#4CAF50' : '#FF5252')};
+	border-radius: 8px;
+	box-shadow: 0 0 0 2000px rgba(0, 0, 0, 0.3);
+	pointer-events: none;
+	transition: border-color 0.3s;
+
+	&:before {
+		content: '';
+		position: absolute;
+		top: -10px;
+		left: -10px;
+		right: -10px;
+		bottom: -10px;
+		border: 2px dashed ${props => (props.$personDetected ? 'rgba(76, 175, 80, 0.5)' : 'rgba(255, 82, 82, 0.5)')};
+		border-radius: 12px;
+		animation: pulse 2s infinite;
+	}
+
+	@keyframes pulse {
+		0% {
+			opacity: 0.6;
+		}
+		50% {
+			opacity: 1;
+		}
+		100% {
+			opacity: 0.6;
+		}
+	}
+`;
+
+// 감지 상태 표시
+export const DetectionStatus = styled.div`
+	position: absolute;
+	bottom: 20px;
+	left: 0;
+	right: 0;
+	text-align: center;
+	padding: 10px 16px;
+	margin: 0 auto;
+	width: fit-content;
+	min-width: 200px;
+	background-color: ${props => (props.$personDetected ? 'rgba(76, 175, 80, 0.9)' : 'rgba(255, 82, 82, 0.9)')};
+	color: white;
+	border-radius: 30px;
+	font-weight: 600;
+	font-size: 14px;
+	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+	transition: background-color 0.3s;
+`;
