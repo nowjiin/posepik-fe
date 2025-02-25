@@ -2,7 +2,7 @@ import styled from 'styled-components';
 import { theme } from '@styles/theme';
 
 export const Container = styled.div`
-	width: 170px;
+	width: 100%;
 	height: 21px;
 	padding: 0 10px;
 	box-sizing: border-box;
