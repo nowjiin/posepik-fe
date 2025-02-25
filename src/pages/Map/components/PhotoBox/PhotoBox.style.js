@@ -3,6 +3,7 @@ import { theme } from '@styles/theme';
 
 export const Container = styled.div`
 	width: 155px;
+	flex-shrink: 0;
 	display: flex;
 	flex-direction: column;
 	cursor: pointer;
