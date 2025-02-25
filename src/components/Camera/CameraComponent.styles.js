@@ -3,7 +3,6 @@ import styled from 'styled-components';
 /**
  * 카메라 컴포넌트의 스타일 정의
  */
-
 // 전체 카메라 컨테이너
 export const CameraContainer = styled.div`
 	display: flex;
@@ -24,6 +23,10 @@ export const VideoContainer = styled.div`
 	justify-content: center;
 	align-items: center;
 	overflow: hidden;
+	/* 비율을 조정하기 위한 제약 추가 */
+	aspect-ratio: 3/4; /* 모바일 세로 화면에 적합한 비율 */
+	max-height: 80vh; /* 최대 높이 제한 */
+	margin: 0 auto; /* 중앙 정렬 */
 `;
 
 // 실제 비디오 요소 스타일
@@ -34,7 +37,7 @@ export const StyledVideo = styled.video.attrs(() => ({
 }))`
 	width: 100%;
 	height: 100%;
-	object-fit: cover; /* 비율을 유지하면서 공간을 채움 */
+	object-fit: contain; /* 비율을 유지하면서 공간을 채움 */
 	position: absolute;
 	transform: ${props => (props.$isFlipped ? 'scaleX(-1)' : 'scaleX(1)')};
 `;
