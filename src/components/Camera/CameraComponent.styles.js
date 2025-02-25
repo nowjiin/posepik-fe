@@ -1,5 +1,45 @@
 import styled from 'styled-components';
 
+/**
+ * 카메라 컴포넌트의 스타일 정의
+ */
+
+// 전체 카메라 컨테이너
+export const CameraContainer = styled.div`
+	display: flex;
+	flex-direction: column;
+	width: 100%;
+	height: 100dvh; /* 모바일 브라우저의 동적 뷰포트 높이 대응 */
+	position: relative;
+	overflow: hidden;
+	background-color: #000; /* 검은색 배경 추가 */
+`;
+
+// 비디오 영역 컨테이너
+export const VideoContainer = styled.div`
+	position: relative;
+	width: 100%;
+	flex: 1; /* 남은 공간을 모두 차지하도록 설정 */
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	overflow: hidden;
+`;
+
+// 실제 비디오 요소 스타일
+export const StyledVideo = styled.video.attrs(() => ({
+	autoPlay: true,
+	playsInline: true,
+	muted: true,
+}))`
+	width: 100%;
+	height: 100%;
+	object-fit: cover; /* 비율을 유지하면서 공간을 채움 */
+	position: absolute;
+	transform: ${props => (props.$isFlipped ? 'scaleX(-1)' : 'scaleX(1)')};
+`;
+
+// 실루엣 오버레이 스타일
 export const SilhouetteOverlay = styled.div`
 	position: absolute;
 	top: 0;
@@ -22,45 +62,49 @@ export const SilhouetteOverlay = styled.div`
 	}
 `;
 
-export const CameraContainer = styled.div`
-	display: flex;
-	flex-direction: column;
-	width: 100%;
-	height: 100dvh; /* 모바일 브라우저의 동적 뷰포트 높이 대응 */
-	position: relative;
-	overflow: hidden;
-	background-color: #000; /* 검은색 배경 추가 */
-`;
-
-export const VideoContainer = styled.div`
-	position: relative;
-	width: 100%;
-	flex: 1; /* 남은 공간을 모두 차지하도록 설정 */
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	overflow: hidden;
-`;
-
-export const StyledVideo = styled.video.attrs(() => ({
-	// 여기서 HTML 요소에 전달할 속성만 정의
-	autoPlay: true,
-	playsInline: true,
-	muted: true,
-}))`
-	width: 100%; /* 가로는 꽉 차게 */
-	height: auto; /* 높이는 자동으로 비율 유지 */
-	object-fit: cover; /* 비율을 유지하면서 공간을 채움 */
+// 위치 안내 메시지 스타일
+export const PositionGuide = styled.div`
 	position: absolute;
-	top: 50%;
-	left: 50%;
-	transform: translate(-50%, -50%) ${props => (props.$isFlipped ? 'scaleX(-1)' : 'scaleX(1)')};
+	top: 15%;
+	left: 0;
+	right: 0;
+	text-align: center;
+	color: white;
+	font-size: 18px;
+	font-weight: 500;
+	padding: 10px;
+	z-index: 15;
+	text-shadow: 0 0 4px rgba(0, 0, 0, 0.8);
+	background-color: ${props => {
+		switch (props.$status) {
+			case 'too-close':
+				return 'rgba(244, 67, 54, 0.7)'; // 빨간색 (너무 가까움)
+			case 'too-far':
+				return 'rgba(255, 152, 0, 0.7)'; // 주황색 (너무 멈)
+			case 'not-centered':
+				return 'rgba(33, 150, 243, 0.7)'; // 파란색 (중앙에 없음)
+			case 'perfect':
+				return 'rgba(76, 175, 80, 0.7)'; // 초록색 (적절함)
+			default:
+				return 'rgba(0, 0, 0, 0.5)'; // 기본 (검정)
+		}
+	}};
+	border-radius: 20px;
+	margin: 0 auto;
+	max-width: 80%;
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+	opacity: ${props => (props.$status === 'none' ? 0 : 1)};
+	transition:
+		opacity 0.3s,
+		background-color 0.3s;
 `;
 
+// 캔버스 (보이지 않음)
 export const HiddenCanvas = styled.canvas`
 	display: none;
 `;
 
+// 하단 컨트롤 컨테이너
 export const ControlsContainer = styled.div`
 	position: absolute;
 	bottom: 20px;
@@ -75,6 +119,7 @@ export const ControlsContainer = styled.div`
 	margin-bottom: env(safe-area-inset-bottom, 0); /* iOS 안전 영역 고려 */
 `;
 
+// 컨트롤 버튼 (좌우 반전, 카메라 전환)
 export const ControlButton = styled.button`
 	width: 48px;
 	height: 48px;
@@ -99,6 +144,7 @@ export const ControlButton = styled.button`
 	}
 `;
 
+// 촬영 버튼
 export const CaptureButton = styled.button`
 	width: 70px;
 	height: 70px;
@@ -135,6 +181,7 @@ export const CaptureButton = styled.button`
 	}
 `;
 
+// 캡처된 이미지 컨테이너
 export const CapturedImageContainer = styled.div`
 	position: absolute;
 	top: 0;
@@ -156,12 +203,14 @@ export const CapturedImageContainer = styled.div`
 	}
 `;
 
+// 캡처된 이미지 액션 버튼 컨테이너
 export const CapturedImageActions = styled.div`
 	display: flex;
 	gap: 15px;
 	margin-top: 20px;
 `;
 
+// 일반 버튼 (다시 촬영, 사용하기 등)
 export const Button = styled.button`
 	padding: 12px 20px;
 	border: none;
@@ -188,6 +237,7 @@ export const Button = styled.button`
 	}
 `;
 
+// 에러 메시지
 export const ErrorMessage = styled.div`
 	position: absolute;
 	top: 20px;
@@ -202,6 +252,7 @@ export const ErrorMessage = styled.div`
 	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 `;
 
+// 상단 헤더 바
 export const HeaderBar = styled.div`
 	position: absolute;
 	top: 0;
@@ -216,12 +267,14 @@ export const HeaderBar = styled.div`
 	align-items: center;
 `;
 
+// 헤더 제목
 export const HeaderTitle = styled.h1`
 	font-size: 18px;
 	margin: 0;
 	font-weight: 500;
 `;
 
+// 닫기 버튼
 export const CloseButton = styled.button`
 	background: none;
 	border: none;

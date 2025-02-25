@@ -16,6 +16,7 @@ import {
 	HeaderTitle,
 	CloseButton,
 	SilhouetteOverlay,
+	PositionGuide,
 } from './CameraComponent.styles';
 
 const CameraComponent = () => {
@@ -27,6 +28,7 @@ const CameraComponent = () => {
 		capturedImage,
 		isFlipped,
 		silhouetteImage,
+		positionStatus,
 		startCamera,
 		stopCamera,
 		capturePhoto,
@@ -38,6 +40,22 @@ const CameraComponent = () => {
 	const [isSending, setIsSending] = useState(false);
 	const [sendError, setSendError] = useState(null);
 	const [showPreview, setShowPreview] = useState(false);
+
+	// 위치 상태에 따른 안내 메시지
+	const getPositionMessage = () => {
+		switch (positionStatus) {
+			case 'too-close':
+				return '뒤로 조금 물러서세요';
+			case 'too-far':
+				return '앞으로 조금 다가오세요';
+			case 'not-centered':
+				return '중앙에 위치해주세요';
+			case 'perfect':
+				return '완벽한 위치입니다!';
+			default:
+				return '';
+		}
+	};
 
 	// 컴포넌트 마운트 시 자동으로 카메라 시작
 	useEffect(() => {
@@ -103,6 +121,7 @@ const CameraComponent = () => {
 				<SilhouetteOverlay>
 					<img src={silhouetteImage} alt="실루엣" />
 				</SilhouetteOverlay>
+				<PositionGuide $status={positionStatus}>{getPositionMessage()}</PositionGuide>
 				<HiddenCanvas ref={canvasRef} />
 			</VideoContainer>
 
