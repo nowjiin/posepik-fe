@@ -170,7 +170,7 @@ export const ButtonContainer = styled.div`
 	position: fixed;
 	left: transform(50%);
 	bottom: 0;
-	z-index: 100;
+	z-index: 200;
 
 	@media (hover: hover) and (pointer: fine) {
 		width: 440px;
