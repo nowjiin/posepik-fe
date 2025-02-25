@@ -179,7 +179,7 @@ const CameraComponent = () => {
 										alignItems: 'center',
 									}}>
 									<img
-										src="/images/upperbody.png"
+										src="/images/upperbody4.png"
 										alt="상체 가이드"
 										style={{
 											maxWidth: '100%',
