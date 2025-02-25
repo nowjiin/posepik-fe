@@ -1,5 +1,27 @@
 import styled from 'styled-components';
 
+export const SilhouetteOverlay = styled.div`
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	pointer-events: none; /* 이벤트가 비디오에 전달되도록 */
+	z-index: 5;
+
+	img {
+		height: 90%;
+		max-width: 90%;
+		object-fit: contain;
+		opacity: 0.7; /* 반투명하게 설정 */
+		mix-blend-mode: screen; /* 이미지 블렌딩 모드 변경 */
+		filter: drop-shadow(0 0 1px rgba(255, 255, 255, 0.3)); /* 옵션: 실루엣 가장자리에 미세한 그림자 추가 */
+	}
+`;
+
 export const CameraContainer = styled.div`
 	display: flex;
 	flex-direction: column;
