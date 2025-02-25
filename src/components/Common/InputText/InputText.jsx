@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import * as S from '@components/Common/InputText/InputText.style';
 
-function InputText({ placeholder, warningMsg, value, onInputChange }) {
+export default function InputText({ placeholder, warningMsg, value, onInputChange }) {
 	const [inputData, setInputData] = useState(value || '');
 	const [showWarning, setShowWarning] = useState(false);
 	const [hasInteracted, setHasInteracted] = useState(false);
@@ -57,5 +57,3 @@ InputText.defaultProps = {
 	value: '',
 	onInputChange: () => {},
 };
-
-export default InputText;
