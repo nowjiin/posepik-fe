@@ -7,7 +7,7 @@ export const Space = styled.div`
 `;
 
 export const Container = styled.div`
-	height: 100dvh;
+	min-height: 100dvh;
 	margin-top: -54px;
 	display: flex;
 	flex-direction: column;
