@@ -7,7 +7,7 @@ export const Space = styled.div`
 `;
 
 export const Container = styled.div`
-	height: calc(100dvh - 54px);
+	min-height: calc(100dvh - 54px + 80px);
 	display: flex;
 	flex-direction: column;
 	align-items: center;

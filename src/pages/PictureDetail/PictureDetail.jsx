@@ -40,7 +40,7 @@ export default function PictureDetail() {
             방향에서 남쪽을 바라보며 촬영한 사진일 가능성이 높습니다. 최대3줄입니다ㅏㅏㅏ"
 						/>
 					</S.TextContainer>
-					<S.TextContainer style={{ marginTop: '30px' }}>
+					<S.TextContainer style={{ marginTop: '30px', marginBottom: '100px' }}>
 						<S.TitleContainer>
 							포토 랭킹
 							<S.RefreshImg src={Refresh} alt="새로고침" />
