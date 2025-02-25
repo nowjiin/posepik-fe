@@ -17,7 +17,7 @@ export default function Splash() {
 				<S.TLogo src={TextLogo} alt="posepik!" />
 				<S.CLogo src={CharacLogo} alt="posepik!" />
 			</S.LogoContainer>
-			<Button text="시작하기" onClick={() => handleNavLinkClick('/map')} isActive={false} />
+			<Button text="시작하기" onClick={() => handleNavLinkClick('/map')} isActive={true} />
 		</S.Container>
 	);
 }
