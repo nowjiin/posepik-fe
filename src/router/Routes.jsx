@@ -6,6 +6,11 @@ import Map from '@pages/Map/Map';
 import MapDetail from '@pages/MapDetail/MapDetail';
 import PictureDetail from '@pages/PictureDetail/PictureDetail';
 import Camera from '@pages/Camera/Camera';
+import Camera1 from '@pages/Camera/Camera';
+import Camera2 from '@pages/Camera/Camera1';
+import Camera3 from '@pages/Camera/Camera2';
+import Camera4 from '@pages/Camera/Camera3';
+
 import CameraResult from '@pages/CameraResult/CameraResult';
 import Error from '@pages/Error/Error';
 
@@ -20,6 +25,10 @@ const AppRoutes = () => {
 				<Route path="/map-detail" element={<MapDetail />} />
 				<Route path="/picture-detail/:id" element={<PictureDetail />} />
 				<Route path="/camera" element={<Camera />} />
+				<Route path="/camera1" element={<Camera1 />} />
+				<Route path="/camera2" element={<Camera2 />} />
+				<Route path="/camera3" element={<Camera3 />} />
+				<Route path="/camera4" element={<Camera4 />} />
 				<Route path="/camera-result/:id" element={<CameraResult />} />
 				<Route path="/*" element={<Error />} />
 			</Routes>
