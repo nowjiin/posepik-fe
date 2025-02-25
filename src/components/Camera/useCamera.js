@@ -9,9 +9,9 @@ const useCamera = () => {
 	const [isCameraOn, setIsCameraOn] = useState(false);
 	const [cameraError, setCameraError] = useState(null);
 	const [capturedImage, setCapturedImage] = useState(null);
-	const [facingMode, setFacingMode] = useState('user'); // 'user' (전면) 또는 'environment' (후면)
+	const [facingMode, setFacingMode] = useState('environment'); // 'user' (전면) 또는 'environment' (후면)
 	const [isFlipped, setIsFlipped] = useState(false); // 좌우 반전 상태
-	const [silhouetteImage, setSilhouetteImage] = useState('/images/tree_silhouette.png'); // 실루엣 이미지 경로
+	const [silhouetteImage, setSilhouetteImage] = useState('/images/upperbody.png'); // 실루엣 이미지 경로
 	const [positionStatus, setPositionStatus] = useState('none'); // 'none', 'too-close', 'too-far', 'perfect', 'not-centered'
 
 	// 카메라 시작
@@ -199,8 +199,8 @@ const useCamera = () => {
 
 			// 4. 경계 감지 파라미터 조정 (더 많은 경계 감지를 위해 임계값 낮춤)
 			const edges = new window.cv.Mat();
-			const lowThreshold = 30; // 원래 50에서 낮춤
-			const highThreshold = 120; // 원래 150에서 낮춤
+			const lowThreshold = 20; // 원래 50에서 낮춤
+			const highThreshold = 100; // 원래 150에서 낮춤
 			window.cv.Canny(dst, edges, lowThreshold, highThreshold);
 
 			// 5. 윤곽선 검출
