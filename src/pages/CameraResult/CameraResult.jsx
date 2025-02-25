@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom';
 import * as S from './CameraResult.style';
 import BackHeader from '@components/Common/Header/BackHeader';
 import AccuracyBar from '@pages/CameraResult/components/AccuracyBar/AccuracyBar';
@@ -10,6 +10,8 @@ import Upload from '@assets/svg/icon-upload.svg';
 import ResultModal from './components/ResultModal/ResultModal';
 
 export default function CameraResult() {
+	const location = useLocation();
+	const imageUrl = location.state?.imageUrl || '';
 	const { id } = useParams();
 	const [rankingName, setRankingName] = useState('');
 	const [isModalOpen, setIsModalOpen] = useState(false);
@@ -27,17 +29,17 @@ export default function CameraResult() {
 	};
 
 	const handleDownloadImage = () => {
-		const imageUrl = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQqV-EpDA9QlYzrKkI-xVr6FFolVlQaqZQQbw&s';
+		const imageUrl = { imageUrl };
 		const link = document.createElement('a');
 		link.href = imageUrl;
-		link.download = 'photo_score_image.jpg'; // 저장될 파일명
+		link.download = 'photo.jpg'; // 저장될 파일명
 		document.body.appendChild(link);
 		link.click();
 		document.body.removeChild(link);
 	};
 
 	const handleShareOnInstagram = () => {
-		const imageUrl = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQqV-EpDA9QlYzrKkI-xVr6FFolVlQaqZQQbw&s';
+		const imageUrl = { imageUrl };
 		const encodedUrl = encodeURIComponent(imageUrl);
 		const instagramUrl = `https://www.instagram.com/sharer.php?u=${encodedUrl}`;
 
@@ -75,7 +77,7 @@ export default function CameraResult() {
 			<S.Container>
 				<S.BodyContainer>
 					<S.ImageContainer>
-						<S.InstaImg src={selectedPhoto?.imageUrl || ''} />
+						<S.InstaImg src={imageUrl || ''} />
 						<S.InstaImg src={selectedPhoto?.imageUrl || ''} />
 					</S.ImageContainer>
 					<S.TextContainer>
