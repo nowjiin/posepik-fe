@@ -94,7 +94,7 @@ function GoogleMap() {
 		// ✅ 마커 클릭 이벤트 추가
 		markerRef.current.addListener('click', () => {
 			console.log('📌 마커 클릭됨! 이동 중...');
-			navigate(`/picture-detail/1`); // 예제 ID
+			navigate(`/map-detail`);
 		});
 	}, [navigate]);
 
