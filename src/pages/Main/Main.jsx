@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import * as S from './Main.style';
+import LogoHeader from '@components/Common/Header/LogoHeader';
+import BackHeader from '@components/Common/Header/BackHeader';
 import Button from '@components/Common/Button/Button';
 import CameraButton from '@components/Common/CameraButton/CameraButton';
 import InputText from '@components/Common/InputText/InputText';
@@ -16,18 +18,22 @@ function Main() {
 	};
 
 	return (
-		<S.Main>
-			<h1>공통 컴포넌트 테스트 페이지</h1>
-			<Button text="시작하기" onClick={sampleClose} isActive={false} />
-			<CameraButton />
-			<InputText
-				placeholder="닉네임(1~12자 입력 가능)"
-				warningMsg="*유효하지 않은 닉네임입니다."
-				isEssential={true}
-				value={projectName}
-				onInputChange={handleInputChange}
-			/>
-		</S.Main>
+		<>
+			<LogoHeader />
+			<BackHeader />
+			<S.Main>
+				<h1>공통 컴포넌트 테스트 페이지</h1>
+				<Button text="시작하기" onClick={sampleClose} isActive={false} />
+				<CameraButton />
+				<InputText
+					placeholder="닉네임(1~12자 입력 가능)"
+					warningMsg="*유효하지 않은 닉네임입니다."
+					isEssential={true}
+					value={projectName}
+					onInputChange={handleInputChange}
+				/>
+			</S.Main>
+		</>
 	);
 }
 
