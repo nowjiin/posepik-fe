@@ -187,6 +187,8 @@ const useCamera = () => {
 			const ctx = tempCanvas.getContext('2d');
 			ctx.drawImage(video, 0, 0);
 
+			console.log(`비디오 크기: ${video.videoWidth}x${video.videoHeight}`);
+
 			// 2. 비디오 프레임을 OpenCV 매트로 변환
 			const src = window.cv.imread(tempCanvas);
 			const dst = new window.cv.Mat();
@@ -195,31 +197,39 @@ const useCamera = () => {
 			window.cv.cvtColor(src, dst, window.cv.COLOR_RGBA2GRAY);
 			window.cv.GaussianBlur(dst, dst, new window.cv.Size(5, 5), 0, 0, window.cv.BORDER_DEFAULT);
 
-			// 4. 경계 감지 (Canny Edge Detection)
+			// 4. 경계 감지 파라미터 조정 (더 많은 경계 감지를 위해 임계값 낮춤)
 			const edges = new window.cv.Mat();
-			window.cv.Canny(dst, edges, 50, 150);
+			const lowThreshold = 30; // 원래 50에서 낮춤
+			const highThreshold = 120; // 원래 150에서 낮춤
+			window.cv.Canny(dst, edges, lowThreshold, highThreshold);
 
 			// 5. 윤곽선 검출
 			const contours = new window.cv.MatVector();
 			const hierarchy = new window.cv.Mat();
 			window.cv.findContours(edges, contours, hierarchy, window.cv.RETR_EXTERNAL, window.cv.CHAIN_APPROX_SIMPLE);
+			console.log(`감지된 윤곽선 수: ${contours.size()}`);
 
 			// 6. 가장 큰 윤곽선 찾기 (사람으로 가정)
 			let maxArea = 0;
 			let maxContourIndex = -1;
+			let totalArea = 0;
 
 			for (let i = 0; i < contours.size(); i++) {
 				const contour = contours.get(i);
 				const area = window.cv.contourArea(contour);
+				totalArea += area;
 
 				if (area > maxArea) {
 					maxArea = area;
 					maxContourIndex = i;
 				}
 			}
+			console.log(`최대 윤곽선 면적: ${maxArea}, 전체 윤곽선 면적: ${totalArea}`);
+			console.log(`프레임 전체 면적: ${src.rows * src.cols}`);
 
 			// 7. 감지된 가장 큰 윤곽선이 있는지 확인
 			if (maxContourIndex === -1) {
+				console.log('자세 확인: 윤곽선이 감지되지 않았습니다.');
 				setPositionStatus('none'); // 아무것도 감지되지 않음
 			} else {
 				// 8. 감지된 윤곽선의 바운딩 박스 구하기
@@ -244,17 +254,27 @@ const useCamera = () => {
 				// 12. 중심 거리 비율 계산 (화면 대각선 길이 대비)
 				const diagonalLength = Math.sqrt(Math.pow(src.cols, 2) + Math.pow(src.rows, 2));
 				const centerDistanceRatio = distanceFromCenter / diagonalLength;
+				console.log(
+					`바운딩 박스: x=${boundingRect.x}, y=${boundingRect.y}, width=${boundingRect.width}, height=${boundingRect.height}`,
+				);
+				console.log(`면적 비율: ${areaRatio.toFixed(4)}, 중심 거리 비율: ${centerDistanceRatio.toFixed(4)}`);
 
-				// 13. 크기와 위치에 따라 상태 업데이트
-				// 일반적으로 적절한 크기는 화면의 30~60% 정도
-				if (areaRatio < 0.25) {
-					setPositionStatus('too-far'); // 너무 멀리 있음
-				} else if (areaRatio > 0.7) {
-					setPositionStatus('too-close'); // 너무 가까이 있음
-				} else if (centerDistanceRatio > 0.2) {
-					setPositionStatus('not-centered'); // 중앙에 위치하지 않음
+				// 13. 크기와 위치에 따라 상태 업데이트 (임계값 조정)
+				if (areaRatio < 0.2) {
+					// 0.25에서 0.20으로 낮춤
+					console.log('자세 확인: 너무 멀리 있음');
+					setPositionStatus('too-far');
+				} else if (areaRatio > 0.65) {
+					// 0.7에서 0.65로 낮춤
+					console.log('자세 확인: 너무 가까이 있음');
+					setPositionStatus('too-close');
+				} else if (centerDistanceRatio > 0.15) {
+					// 0.2에서 0.15로 낮춤
+					console.log('자세 확인: 중앙에 위치하지 않음');
+					setPositionStatus('not-centered');
 				} else {
-					setPositionStatus('perfect'); // 적절한 위치
+					console.log('자세 확인: 적절한 위치');
+					setPositionStatus('perfect');
 				}
 			}
 
@@ -304,6 +324,7 @@ const useCamera = () => {
 		} // 간격 정리
 		return () => {
 			if (positionCheckInterval) {
+				console.log('자세 분석 간격 정리');
 				clearInterval(positionCheckInterval);
 			}
 		};
