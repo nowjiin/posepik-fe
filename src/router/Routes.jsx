@@ -6,11 +6,10 @@ import Map from '@pages/Map/Map';
 import MapDetail from '@pages/MapDetail/MapDetail';
 import PictureDetail from '@pages/PictureDetail/PictureDetail';
 import Camera from '@pages/Camera/Camera';
-import Camera1 from '@pages/Camera/Camera';
-import Camera2 from '@pages/Camera/Camera1';
-import Camera3 from '@pages/Camera/Camera2';
-import Camera4 from '@pages/Camera/Camera3';
-
+import Camera1 from '@pages/Camera/Camera1';
+import Camera2 from '@pages/Camera/Camera2';
+import Camera3 from '@pages/Camera/Camera3';
+import Camera4 from '@pages/Camera/Camera4';
 import CameraResult from '@pages/CameraResult/CameraResult';
 import Error from '@pages/Error/Error';
 
