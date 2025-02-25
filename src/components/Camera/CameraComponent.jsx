@@ -15,6 +15,7 @@ import {
 	HeaderBar,
 	HeaderTitle,
 	CloseButton,
+	SilhouetteOverlay,
 } from './CameraComponent.styles';
 
 const CameraComponent = () => {
@@ -25,6 +26,7 @@ const CameraComponent = () => {
 		cameraError,
 		capturedImage,
 		isFlipped,
+		silhouetteImage,
 		startCamera,
 		stopCamera,
 		capturePhoto,
@@ -98,6 +100,9 @@ const CameraComponent = () => {
 
 			<VideoContainer>
 				<StyledVideo ref={videoRef} $isFlipped={isFlipped} />
+				<SilhouetteOverlay>
+					<img src={silhouetteImage} alt="실루엣" />
+				</SilhouetteOverlay>
 				<HiddenCanvas ref={canvasRef} />
 			</VideoContainer>
 
