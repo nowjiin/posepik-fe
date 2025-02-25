@@ -124,29 +124,44 @@ export const ControlsContainer = styled.div`
 
 // 컨트롤 버튼 (좌우 반전, 카메라 전환)
 export const ControlButton = styled.button`
-	width: 48px;
-	height: 48px;
+	width: 60px;
+	height: 60px;
 	border-radius: 50%;
-	background-color: rgba(0, 0, 0, 0.5);
-	color: white;
-	border: none;
+	background-color: white;
+	border: 4px solid #4285f4;
+	cursor: pointer;
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	font-size: 22px;
-	cursor: pointer;
-	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+	position: relative;
 
-	&:hover {
-		background-color: rgba(0, 0, 0, 0.7);
+	&::after {
+		content: '';
+		position: absolute;
+		width: 50px;
+		height: 50px;
+		border-radius: 50%;
+		background-color: rgba(66, 133, 244, 0.2);
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		transition: background-color 0.3s;
+	}
+
+	&:hover::after {
+		background-color: rgba(66, 133, 244, 0.4);
 	}
 
 	&:disabled {
 		opacity: 0.5;
 		cursor: not-allowed;
+		&::after {
+			background-color: rgba(0, 0, 0, 0.1);
+		}
 	}
 `;
-
 // 촬영 버튼
 export const CaptureButton = styled.button`
 	width: 70px;

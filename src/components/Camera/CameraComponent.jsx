@@ -57,9 +57,9 @@ const CameraComponent = () => {
 		if (!detectionActive) {
 			setDetectionMessage('사람 감지 기능을 초기화하는 중...');
 		} else if (personDetected) {
-			setDetectionMessage(`✅ 인식 성공: ${detectionPercentage}% 가이드에 맞게 위치했습니다`);
+			setDetectionMessage(`✅ 가이드에  ${detectionPercentage}% 위치했습니다`);
 		} else if (detectionPercentage > 0) {
-			setDetectionMessage(`❌ 인식 실패: ${detectionPercentage}% 가이드에 맞지 않습니다`);
+			setDetectionMessage(`❌ ${detectionPercentage}% 가이드에 맞지 않습니다`);
 		} else {
 			setDetectionMessage('❌ 사람이 감지되지 않았습니다');
 		}
