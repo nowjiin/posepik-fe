@@ -7,7 +7,7 @@ export const Space = styled.div`
 `;
 
 export const Container = styled.div`
-	height: calc(100dvh - 54px);
+	min-height: calc(100dvh - 54px);
 	display: flex;
 	flex-direction: column;
 	align-items: center;
@@ -22,6 +22,7 @@ export const BodyContainer = styled.div`
 	align-items: center;
 	gap: 35px;
 	padding: 0 39px;
+	margin-bottom: 50px;
 `;
 
 export const ImageContainer = styled.div`
