@@ -274,7 +274,7 @@ const useCamera = () => {
 					const matchPercentage = checkLandmarksMatchSilhouette(results.poseLandmarks, silhouetteMap);
 
 					setDetectionPercentage(matchPercentage);
-					setPersonDetected(matchPercentage >= 60); // 60% 이상 매치되면 검출 성공
+					setPersonDetected(matchPercentage >= 45); // 45% 이상 매치되면 검출 성공
 				} else {
 					setPersonDetected(false);
 					setDetectionPercentage(0);
